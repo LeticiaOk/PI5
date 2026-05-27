@@ -33,7 +33,8 @@ class Animal extends Model
         'is_dewormed',
         'status',
         'photo_path',
-        'temporary_home_id', // 👈 ADICIONE ESTA LINHA AQUI!
+        'temporary_home_id',
+        'breed_id', // raça
     ];
     
     protected $casts = [
@@ -59,6 +60,11 @@ class Animal extends Model
 public function adoptionRequests()
     {
         return $this->hasMany(AdoptionRequest::class);
+    }
+
+    public function breed()
+    {
+        return $this->belongsTo(Breed::class);
     }
 
     // ── SCOPES DE NEGÓCIO ────────────────────────────────────────────────────
