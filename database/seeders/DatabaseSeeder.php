@@ -5,11 +5,12 @@ namespace Database\Seeders;
 use App\Models\Ong;
 use App\Models\User;
 use App\Models\Animal;
-use App\Models\Adopter; // 🛡️ Importação do Adotante
+use App\Models\Adopter; 
+use App\Models\Breed; //raças
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
-use Faker\Factory as Faker; // 🛡️ Importação do Faker para gerar dados falsos realistas
+use Faker\Factory as Faker; 
 
 class DatabaseSeeder extends Seeder
 {
@@ -20,6 +21,19 @@ class DatabaseSeeder extends Seeder
     {
         // Instancia o gerador de dados falsos em Português
         $faker = Faker::create('pt_BR');
+
+       //cria raças padrao uuid
+        $poodle = Breed::create([
+            'id' => Str::uuid(),
+            'name' => 'Poodle',
+            'species' => 'dog',
+        ]);
+
+        $persa = Breed::create([
+            'id' => Str::uuid(),
+            'name' => 'Persa',
+            'species' => 'cat',
+        ]);
 
         // 1. Super Admin (O "Dono" do SaaS)
         User::withoutEvents(function () {
@@ -55,6 +69,7 @@ class DatabaseSeeder extends Seeder
             'ong_id' => $ong1->id,
             'name' => 'Rex',
             'species' => 'dog',
+            'breed_id' => $poodle->id, //raça
             'gender' => 'male',
             'size' => 'large',
             'arrival_date' => now()->subMonths(2),
@@ -111,6 +126,7 @@ class DatabaseSeeder extends Seeder
             'ong_id' => $ong2->id,
             'name' => 'Mingau',
             'species' => 'cat',
+            'breed_id' => $persa->id, // 🛡️ Vincula Mingau à raça Persa (UUID)
             'gender' => 'female',
             'size' => 'small',
             'arrival_date' => now()->subDays(15),
