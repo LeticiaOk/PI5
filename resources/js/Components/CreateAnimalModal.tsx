@@ -1,8 +1,16 @@
 import { useForm } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
 import InputError from '@/Components/InputError';
+import {AnimalFormData, Breed} from '@/types/animal'
+import { animalFormSchema } from '@/lib/schemas/animalSchema';
 
-// ── Ícones Locais ─────────────────────────────────────────────────────────────
+interface CreateAnimalModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    breeds: Breed[];
+}
+
+// Rendreiza icone de camera
 const CameraIcon = () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 text-gray-400">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -16,15 +24,16 @@ const CloseIcon = () => (
     </svg>
 );
 
-// ── Componente Principal do Modal ─────────────────────────────────────────────
-export default function CreateAnimalModal({ isOpen, onClose }) {
-    // 1. Estados e Referências
-    const fileInputRef = useRef(null);
-    const [preview, setPreview] = useState(null);
+// Renderiza modal de criacao de animal
+export default function CreateAnimalModal({ isOpen, onClose, breeds,}:CreateAnimalModalProps) {
+    // inicializa referencias e estados locais
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [preview, setPreview] = useState<string | null>(null);
 
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         name: '',
         species: 'dog',
+        breed_id: '',
         gender: 'male',
         size: 'small',
         weight: '',
@@ -38,7 +47,7 @@ export default function CreateAnimalModal({ isOpen, onClose }) {
         status: 'available',
     });
 
-    // 2. Prevenção de Memory Leak: Limpa a URL local quando o modal fechar
+    // Previne Memory Leak limpando URL Local
     useEffect(() => {
         return () => {
             if (preview) URL.revokeObjectURL(preview);
@@ -50,13 +59,44 @@ export default function CreateAnimalModal({ isOpen, onClose }) {
 
     // 3. Funções de Manipulação (Handlers)
     
-    // Captura a foto de forma segura na memória do cliente
-    const handlePhotoChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setData('photo', file);
-            setPreview(URL.createObjectURL(file));
-        }
+  // Redimensiona a foto para 300x300 no navegador e converte para WebP (Zero Backend)
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Define um quadrado perfeito de 300x300
+                const size = 300;
+                canvas.width = size;
+                canvas.height = size;
+                
+                // Lógica matemática para corte centralizado (Crop Cover)
+                const minDim = Math.min(img.width, img.height);
+                const startX = (img.width - minDim) / 2;
+                const startY = (img.height - minDim) / 2;
+                
+                // Desenha a imagem cortada no Canvas
+                ctx?.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
+                
+                // Converte o Canvas em um arquivo WebP super leve
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const croppedFile = new File([blob], "photo.webp", { type: 'image/webp' });
+                        // @ts-ignore (Ignoramos o TS estrito aqui apenas para o Inertia aceitar o File nativo)
+                        setData('photo', croppedFile);
+                        setPreview(URL.createObjectURL(croppedFile));
+                    }
+                }, 'image/webp', 0.8);
+            };
+            img.src = event.target?.result as string;
+        };
+        reader.readAsDataURL(file);
     };
 
     const fecharModal = () => {
@@ -66,9 +106,20 @@ export default function CreateAnimalModal({ isOpen, onClose }) {
         onClose();
     };
 
-    const submit = (e) => {
+    const submit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        post(route('animals.store'), {
+
+        // Valida os dados no frontend antes de bater no servidor
+        const result = animalFormSchema.safeParse(data);
+
+        if (!result.success) {
+            // Mapeia os erros do Zod para visualização (opcional, pois o Inertia/Laravel também validam)
+            console.error("Erros de validação:", result.error.format());
+            // Retorna para impedir o envio se o frontend pegar erro
+            return; 
+        }
+
+        post('/animals', {
             preserveScroll: true,
             onSuccess: () => fecharModal(),
         });
@@ -149,6 +200,30 @@ export default function CreateAnimalModal({ isOpen, onClose }) {
                             </div>
                             <InputError message={errors.species} className="mt-1" />
                         </div>
+
+                        <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+        Raça
+    </label>
+
+    <select
+        value={data.breed_id}
+        onChange={(e) => setData('breed_id', e.target.value)}
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black focus:border-black bg-white"
+    >
+        <option value="">Sem raça definida (SRD)</option>
+
+        {breeds
+            .filter((breed) => breed.species === data.species)
+            .map((breed) => (
+                <option key={breed.id} value={breed.id}>
+                    {breed.name}
+                </option>
+            ))}
+    </select>
+
+    <InputError message={errors.breed_id} className="mt-1" />
+</div>
 
                         {/* Porte e Peso */}
                         <div className="grid grid-cols-2 gap-4">
@@ -234,7 +309,7 @@ export default function CreateAnimalModal({ isOpen, onClose }) {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Sobre</label>
                             <textarea
                                 placeholder="Escreva..."
-                                rows="3"
+                                rows={3}
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black focus:border-black resize-none"
                                 value={data.description}
                                 onChange={e => setData('description', e.target.value)}

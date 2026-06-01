@@ -1,46 +1,69 @@
 import { useForm } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
 import InputError from '@/Components/InputError';
+import { Animal, Breed, TemporaryHome } from '@/types/animal';
 
+// Define propriedades do componente modal de edição
+interface EditAnimalModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    animal?: Animal;
+    temporaryHomes: TemporaryHome[];
+    breeds: Breed[];
+}
+
+// Renderiza ícone de câmera
 const CameraIcon = () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 text-gray-400"><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><circle cx="12" cy="13" r="4" /></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 text-gray-400">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+        <circle cx="12" cy="13" r="4" />
+    </svg>
 );
+
+// Renderiza ícone de fechar
 const CloseIcon = () => (
-    <svg className="w-6 h-6 text-gray-500 hover:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+    <svg className="w-6 h-6 text-gray-500 hover:text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
 );
 
-export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHomes = [] }) {
-    const fileInputRef = useRef(null);
-    const [preview, setPreview] = useState(null);
+// Componente principal do Modal de Edição
+export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHomes = [], breeds = [] }: EditAnimalModalProps) {
+    // Inicializa referências e estados locais
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [preview, setPreview] = useState<string | null>(null);
 
-    // 🛡️ 1. Adicionamos a função 'transform' do Inertia na desestruturação
+    // Inicializa formulário com campos da edição (usando Method Spoofing do Laravel via _method: put)
     const { data, setData, post, processing, errors, reset, clearErrors, transform } = useForm({
-        _method: 'put', // 🛡️ 2. Method Spoofing: Diz ao Laravel que é um PUT
+        _method: 'put',
         name: '',
-        species: 'dog',
-        gender: 'male',
-        size: 'small',
+        species: 'dog' as Animal['species'],
+        breed_id: '',
+        gender: 'male' as Animal['gender'],
+        size: 'small' as Animal['size'],
         weight: '',
         arrival_date: '',
         estimated_birth_date: '',
         is_neutered: false,
         is_vaccinated: false,
         is_dewormed: false,
-        photo: null,
+        photo: null as File | null,
         description: '',
-        status: 'available',
+        status: 'available' as Animal['status'],
         temporary_home_id: '',
     });
 
+    // Sincroniza formulário com o animal recebido via props
     useEffect(() => {
         if (animal && isOpen) {
             setData({
                 _method: 'put',
                 name: animal.name || '',
                 species: animal.species || 'dog',
+                breed_id: animal.breed?.id || '',
                 gender: animal.gender || 'male',
                 size: animal.size || 'small',
-                weight: animal.weight || '',
+                weight: animal.weight ? String(animal.weight) : '',
                 arrival_date: animal.arrival_date ? animal.arrival_date.split('T')[0] : '',
                 estimated_birth_date: animal.estimated_birth_date ? animal.estimated_birth_date.split('T')[0] : '',
                 is_neutered: !!animal.is_neutered,
@@ -49,28 +72,63 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
                 photo: null, 
                 description: animal.description || '',
                 status: animal.status || 'available',
-                temporary_home_id: animal.temporary_home_id || '',
+                temporary_home_id: animal.temporary_home?.id || '',
             });
             setPreview(animal.photo_url || null);
         }
     }, [animal, isOpen]);
 
+    // Limpa a memória da URL da imagem local ao fechar o modal
     useEffect(() => {
         return () => {
             if (preview && preview.startsWith('blob:')) URL.revokeObjectURL(preview);
         };
     }, [preview]);
 
+    // Valida estado de exibição do modal
     if (!isOpen || !animal) return null;
 
-    const handlePhotoChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setData('photo', file);
-            setPreview(URL.createObjectURL(file));
-        }
+  // Redimensiona a foto para 300x300 no navegador e converte para WebP (Zero Backend)
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Define um quadrado perfeito de 300x300
+                const size = 300;
+                canvas.width = size;
+                canvas.height = size;
+                
+                // Lógica matemática para corte centralizado (Crop Cover)
+                const minDim = Math.min(img.width, img.height);
+                const startX = (img.width - minDim) / 2;
+                const startY = (img.height - minDim) / 2;
+                
+                // Desenha a imagem cortada no Canvas
+                ctx?.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
+                
+                // Converte o Canvas em um arquivo WebP super leve
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const croppedFile = new File([blob], "photo.webp", { type: 'image/webp' });
+                        // @ts-ignore (Ignoramos o TS estrito aqui apenas para o Inertia aceitar o File nativo)
+                        setData('photo', croppedFile);
+                        setPreview(URL.createObjectURL(croppedFile));
+                    }
+                }, 'image/webp', 0.8);
+            };
+            img.src = event.target?.result as string;
+        };
+        reader.readAsDataURL(file);
     };
 
+    // Reseta form e fecha o modal
     const fecharModal = () => {
         reset();
         clearErrors();
@@ -78,24 +136,22 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
         onClose();
     };
 
-    const submit = (e) => {
+    // Submete os dados para a API do Laravel
+    const submit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        // 🛡️ 3. Sanitização de Payload: Troca vírgulas por pontos antes de empacotar o JSON/FormData
+        // Transforma a vírgula do peso em ponto final
         transform((data) => ({
             ...data,
             weight: data.weight ? data.weight.toString().replace(',', '.') : null,
         }));
 
-        // 🛡️ 4. Enviamos como POST, forçando FormData para que o PHP consiga ler o arquivo (photo)
+        // Força FormData por causa do envio do arquivo no Method Spoofing
         post(`/animals/${animal.id}`, {
             preserveScroll: true,
-            forceFormData: true, // Obrigatório para envio de arquivos com Method Spoofing
+            forceFormData: true,
             onSuccess: () => fecharModal(),
-            onError: (erros) => {
-                // 🛡️ 5. Log de Debug: Se a validação barrar novamente, o erro explícito estará no Console (F12)
-                console.error('Falha na validação do Laravel (Erro 422):', erros);
-            }
+            onError: (erros) => console.error('Erro de validação:', erros)
         });
     };
 
@@ -111,7 +167,7 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
                         
                         <div>
                             <input type="file" ref={fileInputRef} className="hidden" accept="image/jpeg, image/png, image/webp" onChange={handlePhotoChange} />
-                            <div onClick={() => fileInputRef.current.click()} className="relative w-24 h-24 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors group overflow-hidden">
+                            <div onClick={() => fileInputRef.current?.click()} className="relative w-24 h-24 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors group overflow-hidden">
                                 {preview ? (
                                     <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
@@ -133,15 +189,32 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Espécie</label>
                             <div className="flex items-center gap-6">
-                                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600"><input type="radio" value="dog" checked={data.species === 'dog'} onChange={e => setData('species', e.target.value)} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" /> Cachorro</label>
-                                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600"><input type="radio" value="cat" checked={data.species === 'cat'} onChange={e => setData('species', e.target.value)} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" /> Gato</label>
+                                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600"><input type="radio" value="dog" checked={data.species === 'dog'} onChange={e => setData('species', e.target.value as Animal['species'])} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" /> Cachorro</label>
+                                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600"><input type="radio" value="cat" checked={data.species === 'cat'} onChange={e => setData('species', e.target.value as Animal['species'])} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500" /> Gato</label>
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Raça</label>
+                            <select
+                                value={data.breed_id || ''}
+                                onChange={(e) => setData('breed_id', e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black focus:border-black bg-white"
+                            >
+                                <option value="">Sem raça definida (SRD)</option>
+                                {breeds
+                                    .filter((breed) => breed.species === data.species)
+                                    .map((breed) => (
+                                        <option key={breed.id} value={breed.id}>{breed.name}</option>
+                                    ))}
+                            </select>
+                            <InputError message={errors.breed_id} className="mt-1" />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Porte</label>
-                                <select value={data.size} onChange={e => setData('size', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black bg-white">
+                                <select value={data.size} onChange={e => setData('size', e.target.value as Animal['size'])} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black bg-white">
                                     <option value="small">Pequeno (P)</option>
                                     <option value="medium">Médio (M)</option>
                                     <option value="large">Grande (G)</option>
@@ -149,7 +222,6 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Peso</label>
-                                {/* 🛡️ input type="text" permite que o usuário digite vírgula livremente antes do transform() agir */}
                                 <input type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black" value={data.weight} onChange={e => setData('weight', e.target.value)} />
                                 <InputError message={errors.weight} className="mt-1" />
                             </div>
@@ -171,8 +243,8 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Sexo</label>
                             <div className="flex items-center gap-6">
-                                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600"><input type="radio" value="male" checked={data.gender === 'male'} onChange={e => setData('gender', e.target.value)} className="w-4 h-4 text-blue-600 border-gray-300" /> Macho</label>
-                                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600"><input type="radio" value="female" checked={data.gender === 'female'} onChange={e => setData('gender', e.target.value)} className="w-4 h-4 text-blue-600 border-gray-300" /> Fêmea</label>
+                                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600"><input type="radio" value="male" checked={data.gender === 'male'} onChange={e => setData('gender', e.target.value as Animal['gender'])} className="w-4 h-4 text-blue-600 border-gray-300" /> Macho</label>
+                                <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-600"><input type="radio" value="female" checked={data.gender === 'female'} onChange={e => setData('gender', e.target.value as Animal['gender'])} className="w-4 h-4 text-blue-600 border-gray-300" /> Fêmea</label>
                             </div>
                         </div>
 
@@ -184,24 +256,19 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Sobre</label>
-                            <textarea rows="3" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black resize-none" value={data.description} onChange={e => setData('description', e.target.value)}></textarea>
+                            <textarea rows={3} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black resize-none" value={data.description} onChange={e => setData('description', e.target.value)}></textarea>
                             <InputError message={errors.description} className="mt-1" />
                         </div>
 
                         <div className="pb-4">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                            <select value={data.status} onChange={e => setData('status', e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black bg-white">
+                            <select value={data.status} onChange={e => setData('status', e.target.value as Animal['status'])} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black bg-white">
                                 <option value="available">Disponível</option>
                                 <option value="adopted">Adotado</option>
                                 <option value="under_treatment">Em tratamento</option>
                                 <option value="foster_care">Lar temporário</option>
                                 <option value="deceased">Óbito</option>
-                                 {/* opção técnica invisível na prática */}
-    {data.status === 'returned' && (
-        <option value="returned" hidden>
-            Retornado
-        </option>
-    )}
+                                {data.status === 'returned' && <option value="returned" hidden>Retornado</option>}
                             </select>
                             <InputError message={errors.status} className="mt-1" />
 
@@ -222,9 +289,6 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
                                         ))}
                                     </select>
                                     <InputError message={errors.temporary_home_id} className="mt-1" />
-                                    <p className="text-xs text-blue-600 mt-2">
-                                        * O animal será oficialmente vinculado ao endereço deste lar.
-                                    </p>
                                 </div>
                             )}
                         </div>
