@@ -13,7 +13,7 @@ return new class extends Migration
 {
     Schema::create('temporary_homes', function (Blueprint $table) {
         $table->uuid('id')->primary();
-        $table->foreignId('ong_id')->constrained()->cascadeOnDelete();
+        $table->foreignUuid('ong_id')->constrained('ongs')->cascadeOnDelete();
         $table->string('name'); // Nome do voluntário/responsável
         $table->string('phone');
         $table->integer('max_capacity')->default(1); // Quantos animais cabem lá?

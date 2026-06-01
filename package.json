@@ -8,6 +8,8 @@
     "devDependencies": {
         "@inertiajs/react": "^1.0.0",
         "@tailwindcss/forms": "^0.5.11",
+        "@types/react": "^19.2.15",
+        "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^4.2.0",
         "autoprefixer": "^10.4.12",
         "axios": "^1.6.0",
@@ -19,6 +21,7 @@
         "vite": "^5.0.0"
     },
     "dependencies": {
-        "@headlessui/react": "^2.2.10"
+        "@headlessui/react": "^2.2.10",
+        "zod": "^4.4.3"
     }
 }

@@ -16,7 +16,7 @@ public function index()
     // with(['temporaryHome.address']): 🛡️ ESSA É A CHAVE! 
     // Carrega o lar temporário e, dentro dele, o endereço polimórfico.
     $animals = Animal::active()
-        ->with(['temporaryHome.address']) 
+        ->with(['temporaryHome.address', 'breed']) 
         ->latest()
         ->paginate(15)
         ->withQueryString();
@@ -31,12 +31,18 @@ public function index()
     $temporaryHomes = \App\Models\TemporaryHome::select('id', 'name', 'max_capacity')
         ->orderBy('name')
         ->get();
+    
+    //raças
+    $breeds = \App\Models\Breed::select('id', 'name', 'species')
+    ->orderBy('name')
+    ->get();
 
     // 3. ENVIO ÚNICO PARA O FRONT-END:
     return Inertia::render('Animals/Index', [
         'animals' => $animals,
         'adopters' => $adopters,
-        'temporaryHomes' => $temporaryHomes
+        'temporaryHomes' => $temporaryHomes,
+        'breeds' => $breeds
     ]);
 }
 

@@ -15,7 +15,7 @@ return new class extends Migration
         $table->uuid('id')->primary();
         
         // ESTA LINHA É A QUE O ERRO DIZ QUE ESTÁ FALTANDO:
-        $table->foreignId('ong_id')->constrained()->onDelete('cascade');
+        $table->foreignUuid('ong_id')->constrained('ongs')->onDelete('cascade');
         
         // Certifique-se que o animal_id também é UUID se seus animais usam UUID
         $table->foreignUuid('animal_id')->constrained('animals')->onDelete('cascade');

@@ -23,6 +23,8 @@ return new class extends Migration
             $table->enum('species', ['dog', 'cat', 'other']); // espécie
             $table->enum('gender', ['male', 'female']); // sexo
             $table->enum('size', ['small', 'medium', 'large']); // porte
+            // Chave estrangeira opcional (null = Sem Raça Definida / SRD, ex: viralata)
+            $table->foreignUuid('breed_id')->nullable()->constrained('breeds')->restrictOnDelete();
             
             // 4. Datas e Idade
             $table->date('arrival_date'); // data_chegada

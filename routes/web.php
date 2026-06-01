@@ -37,6 +37,8 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
 // 🔒 NÚCLEO DO SAAS (Proteção B2B: Exige Login + Isolamento de Tenant interno)
 // ==============================================================================
 Route::middleware(['auth', 'tenant'])->group(function () {
+
+Route::get('/breeds/{species}', [BreedController::class, 'bySpecies'])->name('breeds.by-species');
     
     // 🐾 Módulo 1: Prontuários de Animais
     Route::prefix('animals')->name('animals.')->group(function () {
@@ -82,6 +84,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::get('/', [AdoptionRequestController::class, 'index'])->name('index');
         Route::patch('/{request}/status', [AdoptionRequestController::class, 'updateStatus'])->name('status');
     });
+
+
 
 }); // <--- AQUI ESTAVA O SEU PROBLEMA. ESTE FECHAMENTO PROVAVELMENTE FOI DELETADO.
 
