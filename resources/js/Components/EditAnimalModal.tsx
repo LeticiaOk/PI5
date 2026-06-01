@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import InputError from '@/Components/InputError';
 import { Animal, Breed, TemporaryHome } from '@/types/animal';
 
@@ -85,9 +85,6 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
         };
     }, [preview]);
 
-    // Valida estado de exibição do modal
-    if (!isOpen || !animal) return null;
-
   // Redimensiona a foto para 300x300 no navegador e converte para WebP (Zero Backend)
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -155,8 +152,16 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
         });
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    // Congela a lista de raças na memória, recalculando apenas se a espécie mudar
+    const filteredBreeds = useMemo(() => {
+        return (breeds || []).filter((breed) => breed.species === data.species);
+    }, [breeds, data.species]);
+
+    // O retorno condicional DEVE ficar aqui, abaixo de todos os hooks
+    if (!isOpen || !animal) return null;
+
+return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/70">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden relative animate-in fade-in zoom-in duration-200">
                 <div className="flex justify-between items-center p-6 border-b border-gray-100">
                     <h2 className="text-xl font-bold text-gray-900">Editar animal</h2>
@@ -194,6 +199,7 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
                             </div>
                         </div>
 
+                     {/* Raça */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Raça</label>
                             <select
@@ -202,11 +208,9 @@ export default function EditAnimalModal({ isOpen, onClose, animal, temporaryHome
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black focus:border-black bg-white"
                             >
                                 <option value="">Sem raça definida (SRD)</option>
-                                {breeds
-                                    .filter((breed) => breed.species === data.species)
-                                    .map((breed) => (
-                                        <option key={breed.id} value={breed.id}>{breed.name}</option>
-                                    ))}
+                                {filteredBreeds.map((breed) => (
+                                    <option key={breed.id} value={breed.id}>{breed.name}</option>
+                                ))}
                             </select>
                             <InputError message={errors.breed_id} className="mt-1" />
                         </div>
