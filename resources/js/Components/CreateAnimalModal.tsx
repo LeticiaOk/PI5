@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import InputError from '@/Components/InputError';
 import {AnimalFormData, Breed} from '@/types/animal'
 import { animalFormSchema } from '@/lib/schemas/animalSchema';
@@ -53,11 +53,12 @@ export default function CreateAnimalModal({ isOpen, onClose, breeds,}:CreateAnim
             if (preview) URL.revokeObjectURL(preview);
         };
     }, [preview]);
+      // 3. Funções de Manipulação (Handlers)
 
     // Se o modal não estiver aberto, não renderiza nada (O 'return' para o fluxo aqui)
-    if (!isOpen) return null;
+  
 
-    // 3. Funções de Manipulação (Handlers)
+  
     
   // Redimensiona a foto para 300x300 no navegador e converte para WebP (Zero Backend)
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,9 +126,16 @@ export default function CreateAnimalModal({ isOpen, onClose, breeds,}:CreateAnim
         });
     };
 
+    // Congela a lista de raças na memória, recalculando apenas se a espécie mudar
+ const filteredBreeds = useMemo(() => {
+        return (breeds || []).filter((breed) => breed.species === data.species);
+    }, [breeds, data.species]);
+
+      if (!isOpen) return null;
+
     // 4. Renderização do HTML (Este é o 'return' que estava dando erro)
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/70">
             {/* Modal Container */}
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden relative animate-in fade-in zoom-in duration-200">
                 
@@ -201,29 +209,21 @@ export default function CreateAnimalModal({ isOpen, onClose, breeds,}:CreateAnim
                             <InputError message={errors.species} className="mt-1" />
                         </div>
 
+                     {/* Raça */}
                         <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-        Raça
-    </label>
-
-    <select
-        value={data.breed_id}
-        onChange={(e) => setData('breed_id', e.target.value)}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black focus:border-black bg-white"
-    >
-        <option value="">Sem raça definida (SRD)</option>
-
-        {breeds
-            .filter((breed) => breed.species === data.species)
-            .map((breed) => (
-                <option key={breed.id} value={breed.id}>
-                    {breed.name}
-                </option>
-            ))}
-    </select>
-
-    <InputError message={errors.breed_id} className="mt-1" />
-</div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Raça</label>
+                            <select
+                                value={data.breed_id || ''}
+                                onChange={(e) => setData('breed_id', e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-black focus:border-black bg-white"
+                            >
+                                <option value="">Sem raça definida (SRD)</option>
+                                {filteredBreeds.map((breed) => (
+                                    <option key={breed.id} value={breed.id}>{breed.name}</option>
+                                ))}
+                            </select>
+                            <InputError message={errors.breed_id} className="mt-1" />
+                        </div>
 
                         {/* Porte e Peso */}
                         <div className="grid grid-cols-2 gap-4">
