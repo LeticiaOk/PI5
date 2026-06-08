@@ -17,9 +17,9 @@ export const animalFormSchema = z.object({
     estimated_birth_date: z.string().optional().nullable().or(z.literal('')),
     
     // Booleanos obrigatórios para os checkboxes
-    is_neutered: z.boolean().default(false),
-    is_vaccinated: z.boolean().default(false),
-    is_dewormed: z.boolean().default(false),
+is_neutered: z.boolean(),
+    is_vaccinated: z.boolean(),
+    is_dewormed: z.boolean(),
     
     status: z.enum(["available", "adopted", "deceased", "foster_care", "under_treatment", "returned"]),
     description: z.string().optional().nullable().or(z.literal('')),
