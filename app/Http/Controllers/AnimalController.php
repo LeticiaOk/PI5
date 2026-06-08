@@ -55,6 +55,7 @@ public function index()
         $validated = $request->validate([
             'name'                  => 'required|string|max:255',
             'species'               => 'required|in:dog,cat,other',
+            'breed_id'              => 'nullable|exists:breeds,id',
             'gender'                => 'required|in:male,female',
             'size'                  => 'required|in:small,medium,large',
             'arrival_date'          => 'required|date',
@@ -100,6 +101,7 @@ public function index()
         $validated = $request->validate([
             'name'                  => 'required|string|max:255',
             'species'               => 'required|in:dog,cat,other',
+            'breed_id'              => 'nullable|exists:breeds,id',
             'gender'                => 'required|in:male,female',
             'size'                  => 'required|in:small,medium,large',
             'arrival_date'          => 'required|date',

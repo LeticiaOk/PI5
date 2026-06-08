@@ -22,18 +22,14 @@ class DatabaseSeeder extends Seeder
         // Instancia o gerador de dados falsos em Português
         $faker = Faker::create('pt_BR');
 
-       //cria raças padrao uuid
-        $poodle = Breed::create([
-            'id' => Str::uuid(),
-            'name' => 'Poodle',
-            'species' => 'dog',
+       // roda o seeder de raças 
+        $this->call([
+            BreedSeeder::class,
         ]);
-
-        $persa = Breed::create([
-            'id' => Str::uuid(),
-            'name' => 'Persa',
-            'species' => 'cat',
-        ]);
+        
+        // busca raças criadas pros animais de teste
+        $poodle = Breed::where('name', 'Poodle')->first();
+        $persa = Breed::where('name', 'Persa')->first();
 
         // 1. Super Admin (O "Dono" do SaaS)
         User::withoutEvents(function () {

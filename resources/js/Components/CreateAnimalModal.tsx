@@ -143,7 +143,7 @@ export default function CreateAnimalModal({ isOpen, onClose, breeds,}:CreateAnim
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/70">
             {/* Modal Container */}
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden relative animate-in fade-in zoom-in duration-200">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden relative animate-in fade-in zoom-in duration-200">
                 
                 {/* Header fixo */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100">
