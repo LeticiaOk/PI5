@@ -18,7 +18,7 @@ export default function BaseModal({ isOpen, onClose, title, children }) {
 
     return (
         // z-50 garante que o modal fique acima de qualquer navbar ou tabela (z-index)
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/70">
             
             {/* Overlay invisível para fechar ao clicar fora do modal */}
             <div 
@@ -28,7 +28,7 @@ export default function BaseModal({ isOpen, onClose, title, children }) {
             ></div>
 
             {/* Container Central do Modal */}
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 
                 {/* Cabeçalho */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
