@@ -22,4 +22,9 @@ class Ong extends Model // <-- AQUI: Tem que ser "Ong" e não "Ongs"
         'branding' => 'array',
         'is_active' => 'boolean',
     ];
+
+    public function settings()
+    {
+        return $this->hasOne(OngSetting::class);
+    }
 }
