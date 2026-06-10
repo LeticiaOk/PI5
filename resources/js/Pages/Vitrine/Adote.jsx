@@ -119,7 +119,7 @@ export default function Adote({ pets = [], slug }) {
                     <div className="hidden lg:grid grid-cols-2 gap-4 max-w-md mx-auto">
                         <div className="space-y-4 pt-8">
                             <div className="h-40 rounded-3xl p-6 text-white flex flex-col justify-end shadow-lg" style={{ backgroundColor: primaryColor, boxShadow: `0 10px 25px -5px ${primaryColor}50` }}>
-                                <span className="text-3xl font-black">+{pets.length || 0}</span>
+                                <span className="text-3xl font-black">+{pets.total || (Array.isArray(pets) ? pets.length : pets.data?.length) || 0}</span>
                                 <span className="text-xs font-semibold uppercase tracking-wider opacity-80">Aguardando lar</span>
                             </div>
                             <div className="bg-white border border-gray-100 h-32 rounded-3xl p-6 flex flex-col justify-center items-center text-center shadow-sm">
@@ -204,11 +204,12 @@ export default function Adote({ pets = [], slug }) {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredPets.map((pet) => (
                             <PetCard 
                                 key={pet.uuid} 
                                 pet={pet} 
+                                profileUrl={`/${slug}/animal/${pet.id}`}
                                 onAdoptClick={() => setSelectedPet(pet)} 
                             />
                         ))}

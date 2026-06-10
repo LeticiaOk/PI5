@@ -10,7 +10,7 @@ export default function Doar({ slug }) {
             <span className="text-5xl mb-4">❤️</span>
             <h1 className="text-3xl font-bold mb-2">Faça uma doação</h1>
             <p className="text-gray-600 mb-6 text-center max-w-lg">Sua ajuda mantém nosso abrigo funcionando e salva vidas. Em breve informaremos nossos dados bancários e PIX.</p>
-            <Link href={`/${slug}`} className="text-gray-500 hover:text-gray-800 underline">Voltar</Link>
+            <Link href={`/${slug}/adote`} className="text-gray-500 hover:text-gray-800 underline">Voltar</Link>
         </div>
     );
 }
