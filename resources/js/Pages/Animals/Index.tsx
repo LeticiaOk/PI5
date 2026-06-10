@@ -136,16 +136,16 @@ function AnimalsTableContent() {
                 </button>
             </div>
 
-            {/* VIEW DESKTOP (Tabela Completa) */}
-            <div className="hidden md:block bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-max w-full text-sm text-left">
+            {/* VIEW DESKTOP (Tabela Completa) - CORREÇÃO DO SCROLLBAR AQUI 👇 */}
+            <div className="hidden lg:block bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="w-full overflow-x-auto">
+                <table className="w-full text-sm text-left">
                <thead>
                         <tr className="border-b border-gray-100 bg-slate-50 uppercase tracking-[0.08em]">
                             {['FOTO','SEXO','NOME','ESPÉCIE','RAÇA','DATA CHEGADA','PORTE','PESO','IDADE','VERMIFUGADO','CASTRADO','VACINADO','STATUS','AÇÕES'].map((h) => (
                                 <th
                                     key={h}
-                                    className={`px-5 py-4 text-[11px] font-bold tracking-wider text-gray-500 whitespace-nowrap ${(h === 'STATUS' || h === 'AÇÕES') ? 'text-center' : ''}`}
+                                    className={`px-4 py-4 text-[10px] font-bold tracking-wider text-gray-500 whitespace-nowrap ${(h === 'STATUS' || h === 'AÇÕES') ? 'text-center' : ''}`}
                                 >
                                     {h}
                                 </th>
@@ -158,9 +158,9 @@ function AnimalsTableContent() {
                         ) : (
                             filteredAnimals.map((animal: Animal) => (
                                 <tr key={animal.id} className="hover:bg-slate-50 transition-all duration-200 group">
-                                  <td className="px-4 py-3 w-24">
+                                  <td className="px-4 py-3 w-20">
     {animal.photo_url ? (
-        <div className="w-16 h-16 overflow-hidden rounded-2xl border border-gray-200 shrink-0 bg-gray-50 shadow-sm">            
+        <div className="w-12 h-12 overflow-hidden rounded-xl border border-gray-200 shrink-0 bg-gray-50 shadow-sm">            
               <img
                 src={animal.photo_url}
                 alt={animal.name}
@@ -168,46 +168,44 @@ function AnimalsTableContent() {
               />
             </div>
     ) : (
-        // se não tiver foto do animal, mostra fallback (imagem default)
-        <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
+        <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
     <PawIcon />
 </div>
     )}
 </td>
                                     <td className="px-4 py-3"><GenderIcon gender={animal.gender} /></td>
-                                    <td className="px-4 py-3 font-bold text-gray-800">{animal.name}</td>
-                                    <td className="px-4 py-3">{animalTranslate.species[animal.species] ?? animal.species}</td>
+                                    <td className="px-4 py-3 font-bold text-gray-800 whitespace-nowrap">{animal.name}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">{animalTranslate.species[animal.species] ?? animal.species}</td>
                                     
-                                    {/* mostra a raça vinda do banco ou "SRD" se não existir */}
-                                    <td className="px-4 py-3 font-medium text-indigo-600">
+                                    <td className="px-4 py-3 font-medium text-indigo-600 whitespace-nowrap">
                                         {animal.breed?.name ?? 'SRD'}
                                     </td>
                                     
-                                    <td className="px-4 py-3">{formatDate(animal.arrival_date)}</td>
-                                    <td className="px-4 py-3">{animalTranslate.size[animal.size] ?? animal.size}</td>
-                                    <td className="px-4 py-3">{animal.weight ? `${animal.weight}kg` : '—'}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">{formatDate(animal.arrival_date)}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">{animalTranslate.size[animal.size] ?? animal.size}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap">{animal.weight ? `${animal.weight}kg` : '—'}</td>
                                     <td className="px-4 py-3 whitespace-nowrap">{calculateAge(animal.estimated_birth_date)}</td>
                                     <td className="px-4 py-3"><BoolBadge value={animal.is_dewormed} /></td>
                                     <td className="px-4 py-3"><BoolBadge value={animal.is_neutered} /></td>
                                     <td className="px-4 py-3"><BoolBadge value={animal.is_vaccinated} /></td>
-                                    <td className="px-4 py-3 min-w-[150px] text-center">
+                                    <td className="px-4 py-3 min-w-[130px] text-center">
                                         {animal.status === 'foster_care' ? (
-                                            <button onClick={() => setLocationModal({ isOpen: true, home: animal.temporary_home })} className="group flex items-center gap-1">
+                                            <button onClick={() => setLocationModal({ isOpen: true, home: animal.temporary_home })} className="group flex items-center gap-1 justify-center w-full">
                                                 <StatusBadge status={animal.status} />
-                                                <span className="text-[10px] text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity">(ver local)</span>
+                                                <span className="text-[10px] text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity absolute mt-8">(ver local)</span>
                                             </button>
                                         ) : (
                                             <StatusBadge status={animal.status} />
                                         )}
                                     </td>
-                                    <td className="px-5 py-4 min-w-[170px] text-center">
-                                        <div className="flex items-center justify-center gap-3 whitespace-nowrap">
+                                    <td className="px-4 py-3 min-w-[150px] text-center">
+                                        <div className="flex items-center justify-center gap-2 whitespace-nowrap">
                                             {animal.status === 'available' && (
-                                                <button onClick={() => setAdoptionModal({ isOpen: true, animal: animal })} className="p-2 bg-pink-50 text-pink-600 hover:bg-pink-100 rounded-lg transition-colors" title="Registrar Adoção"><AdoptIcon /></button>
+                                                <button onClick={() => setAdoptionModal({ isOpen: true, animal: animal })} className="p-1.5 bg-pink-50 text-pink-600 hover:bg-pink-100 rounded-md transition-colors" title="Registrar Adoção"><AdoptIcon /></button>
                                             )}
-                                            <Link href={`/animals/${animal.id}`} className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Ver Dossiê Completo"><ViewIcon /></Link>
-                                            <button onClick={() => setEditingAnimal(animal)} className="p-2 bg-gray-100 text-gray-600 hover:bg-indigo-100 rounded-lg" title="Editar"><EditIcon /></button>
-                                            <Link href={`/animals/${animal.id}`} method="delete" as="button" className="p-2 bg-gray-100 text-gray-600 hover:bg-red-100 rounded-lg" onClick={(e) => !confirm(`Excluir ${animal.name}?`) && e.preventDefault()} title="Excluir"><TrashIcon /></Link>
+                                            <Link href={`/animals/${animal.id}`} className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors" title="Ver Dossiê Completo"><ViewIcon /></Link>
+                                            <button onClick={() => setEditingAnimal(animal)} className="p-1.5 bg-gray-100 text-gray-600 hover:bg-indigo-100 rounded-md" title="Editar"><EditIcon /></button>
+                                            <Link href={`/animals/${animal.id}`} method="delete" as="button" className="p-1.5 bg-gray-100 text-gray-600 hover:bg-red-100 rounded-md" onClick={(e) => !confirm(`Excluir ${animal.name}?`) && e.preventDefault()} title="Excluir"><TrashIcon /></Link>
                                         </div>
                                     </td>
                                 </tr>
@@ -219,7 +217,7 @@ function AnimalsTableContent() {
             </div>
 
             {/* VIEW MOBILE (Cards Responsivos) */}
-            <div className="md:hidden grid grid-cols-1 gap-4 mt-4">
+            <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                 {filteredAnimals.map((animal: Animal) => (
                     <div key={`card-${animal.id}`} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
                         <div className="flex gap-4 mb-3 items-start">
@@ -240,10 +238,10 @@ function AnimalsTableContent() {
                                     {animalTranslate.species[animal.species] ?? animal.species} • <span className="font-semibold text-indigo-500">{animal.breed?.name ?? 'SRD'}</span>
                                 </p>
                                 
-                                <StatusBadge status={animal.status} />
+                                <div className="mt-2"><StatusBadge status={animal.status} /></div>
                             </div>
                         </div>
-                       <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1 w-fit">
+                       <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1.5 w-fit mt-2">
                             {animal.status === 'available' && (
                                 <button onClick={() => setAdoptionModal({ isOpen: true, animal })} className="p-2 text-pink-600 bg-pink-50 rounded-lg"><AdoptIcon /></button>
                             )}

@@ -31,4 +31,11 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    /**  
+     * Retorna a ONG à qual este usuário pertence.
+     **/
+    public function ong()
+    {
+        return $this->belongsTo(Ong::class, 'ong_id');
+    }
 }

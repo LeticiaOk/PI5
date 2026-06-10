@@ -6,7 +6,8 @@ use App\Models\Ong;
 use App\Models\User;
 use App\Models\Animal;
 use App\Models\Adopter; 
-use App\Models\Breed; //raças
+use App\Models\Breed;
+use App\Models\OngSetting;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
@@ -14,24 +15,17 @@ use Faker\Factory as Faker;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // Instancia o gerador de dados falsos em Português
         $faker = Faker::create('pt_BR');
 
-       // roda o seeder de raças 
         $this->call([
             BreedSeeder::class,
         ]);
         
-        // busca raças criadas pros animais de teste
         $poodle = Breed::where('name', 'Poodle')->first();
         $persa = Breed::where('name', 'Persa')->first();
 
-        // 1. Super Admin (O "Dono" do SaaS)
         User::withoutEvents(function () {
             User::create([
                 'name' => 'Super Admin SaaS',
@@ -41,7 +35,7 @@ class DatabaseSeeder extends Seeder
             ]);
         });
 
-        // 2. ONG 1 - Cão Feliz
+        // ONG 1 - Cão Feliz
         $ong1 = Ong::create([
             'id' => Str::uuid(),
             'slug' => 'caofeliz',
@@ -53,6 +47,15 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        OngSetting::create([
+            'ong_id' => $ong1->id,
+            'primary_color' => '#FF5733',
+            'hero_title' => 'Dê uma nova chance para um peludo',
+            'hero_subtitle' => "Somos a Cão Feliz, uma ONG focada em resgatar cachorros em situação de rua.\n\nVenha conhecer seu novo melhor amigo!",
+            'about_text' => 'Fundada em 2020, nossa ONG já salvou mais de 500 animais.',
+            'instagram_url' => 'https://instagram.com/ongcaofeliz',
+        ]);
+
         User::create([
             'name' => 'Gestor Cão Feliz',
             'email' => 'gestor@caofeliz.com.br',
@@ -60,12 +63,11 @@ class DatabaseSeeder extends Seeder
             'ong_id' => $ong1->id,
         ]);
 
-        // Animal para ONG 1
-        Animal::create([
+        Animal::withoutGlobalScopes()->create([
             'ong_id' => $ong1->id,
             'name' => 'Rex',
             'species' => 'dog',
-            'breed_id' => $poodle->id, //raça
+            'breed_id' => $poodle->id,
             'gender' => 'male',
             'size' => 'large',
             'arrival_date' => now()->subMonths(2),
@@ -76,9 +78,8 @@ class DatabaseSeeder extends Seeder
             'description' => 'Um cão muito brincalhão e protetor.'
         ]);
 
-        // 🐾 2 Adotantes de Teste para a ONG 1
         for ($i = 0; $i < 2; $i++) {
-            $adopter = Adopter::create([
+            $adopter = Adopter::withoutGlobalScopes()->create([
                 'ong_id' => $ong1->id,
                 'name'   => $faker->name,
                 'cpf'    => $faker->cpf(false), 
@@ -86,7 +87,6 @@ class DatabaseSeeder extends Seeder
                 'email'  => $faker->unique()->safeEmail,
             ]);
 
-            // Cria o Endereço vinculado a ele
             $adopter->address()->create([
                 'ong_id'       => $ong1->id,
                 'zip_code'     => $faker->postcode,
@@ -98,7 +98,7 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // 3. ONG 2 - Gato Mestre
+        // ONG 2 - Gato Mestre
         $ong2 = Ong::create([
             'id' => Str::uuid(),
             'slug' => 'gatomestre',
@@ -110,6 +110,15 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        OngSetting::create([
+            'ong_id' => $ong2->id,
+            'primary_color' => '#8E44AD',
+            'hero_title' => 'Gatos incríveis buscando lares amorosos',
+            'hero_subtitle' => 'O Abrigo Gato Mestre cuida exclusivamente de felinos. Nossos ronrons aguardam por você.',
+            'about_text' => 'Especialistas em felinos desde 2018.',
+            'instagram_url' => 'https://instagram.com/gatomestre',
+        ]);
+
         User::create([
             'name' => 'Diretora Gato Mestre',
             'email' => 'diretora@gatomestre.com.br',
@@ -117,12 +126,11 @@ class DatabaseSeeder extends Seeder
             'ong_id' => $ong2->id,
         ]);
 
-        // Animal para ONG 2
-        Animal::create([
+        Animal::withoutGlobalScopes()->create([
             'ong_id' => $ong2->id,
             'name' => 'Mingau',
             'species' => 'cat',
-            'breed_id' => $persa->id, // 🛡️ Vincula Mingau à raça Persa (UUID)
+            'breed_id' => $persa->id,
             'gender' => 'female',
             'size' => 'small',
             'arrival_date' => now()->subDays(15),
@@ -133,7 +141,9 @@ class DatabaseSeeder extends Seeder
             'description' => 'Uma gatinha dócil que adora colo.'
         ]);
 
-        // Depois de criar as ONGs e os Animais...
-        \App\Models\AdoptionRequest::factory(30)->create();
+        // Ignora os escopos globais para a factory conseguir puxar animais aleatórios
+        \App\Models\AdoptionRequest::withoutGlobalScopes(function () {
+            \App\Models\AdoptionRequest::factory(30)->create();
+        });
     }
 }

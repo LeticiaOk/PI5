@@ -38,7 +38,7 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
 // ==============================================================================
 Route::middleware(['auth', 'tenant'])->group(function () {
 
-Route::get('/breeds/{species}', [BreedController::class, 'bySpecies'])->name('breeds.by-species');
+    Route::get('/breeds/{species}', [App\Http\Controllers\BreedController::class, 'bySpecies'])->name('breeds.by-species');
     
     // 🐾 Módulo 1: Prontuários de Animais
     Route::prefix('animals')->name('animals.')->group(function () {
@@ -79,40 +79,25 @@ Route::get('/breeds/{species}', [BreedController::class, 'bySpecies'])->name('br
         Route::get('/cleaning', [InventoryController::class, 'cleaning'])->name('cleaning');
     });
 
-    // 📩 Módulo 5: Solicitações de Adoção (Leads da Vitrine para a ONG gerenciar)
+    // 📩 Módulo 5: Solicitações de Adoção
     Route::prefix('adoptions/requests')->name('adoptions.requests.')->group(function () {
         Route::get('/', [AdoptionRequestController::class, 'index'])->name('index');
         Route::patch('/{request}/status', [AdoptionRequestController::class, 'updateStatus'])->name('status');
     });
 
-
-
-}); // <--- AQUI ESTAVA O SEU PROBLEMA. ESTE FECHAMENTO PROVAVELMENTE FOI DELETADO.
-
-
-Route::middleware(['auth', 'verified'])->group(function () {
+    // 🏠 Lares Temporários & Voluntários (Agora protegidos pelo Tenant)
     Route::resource('temporary-homes', TemporaryHomeController::class)->except(['create', 'show', 'edit']);
-});
+    Route::resource('volunteers', VolunteerController::class)->except(['create', 'show', 'edit']);
 
-// 🦸 Módulo de Voluntários
-Route::resource('volunteers', VolunteerController::class)->except(['create', 'show', 'edit']);
+}); // Fim do Grupo Auth+Tenant
 
+
+// 🌐 Rota Pública de CEP
 Route::get('/api/cep/{cep}', function ($cep) {
-    // 1. Limpa tudo que não for número
     $cep = preg_replace('/\D/', '', $cep);
-    
-    // 2. Se não tiver 8 dígitos, rejeita
-    if (strlen($cep) !== 8) {
-        return response()->json(['erro' => 'CEP inválido'], 400);
-    }
-
-    // 3. O Laravel faz a requisição pro ViaCEP (Motor seguro)
+    if (strlen($cep) !== 8) return response()->json(['erro' => 'CEP inválido'], 400);
     $response = Http::timeout(5)->get("https://viacep.com.br/ws/{$cep}/json/");
-
-    if ($response->successful() && !isset($response['erro'])) {
-        return $response->json();
-    }
-
+    if ($response->successful() && !isset($response['erro'])) return $response->json();
     return response()->json(['erro' => 'CEP não encontrado'], 404);
 })->name('api.cep');
 
@@ -124,19 +109,19 @@ require __DIR__.'/auth.php';
 // ==============================================================================
 Route::prefix('{slug}')->middleware(['web', 'resolve.tenant'])->group(function () {
     
-    // Rotas de leitura (Páginas) - Limite tolerante
+    // Rotas de leitura (Páginas)
     Route::middleware('throttle:60,1')->group(function () {
-        // 1. A raiz do slug (/gatomestre) agora chama o método 'home'
         Route::get('/', [VitrineController::class, 'home'])->name('vitrine.home'); 
-        
-        // 2. A página de adoção (/gatomestre/adote) continua chamando 'adote'
         Route::get('/adote', [VitrineController::class, 'adote'])->name('vitrine.adote');
+        Route::get('/animal/{animal}', [VitrineController::class, 'showAnimal'])->name('vitrine.animal.show');
+        Route::get('/como-adotar', [VitrineController::class, 'comoAdotar'])->name('vitrine.como-adotar');
+        Route::get('/quem-somos', [VitrineController::class, 'quemSomos'])->name('vitrine.quem-somos');
+        Route::get('/doar', [VitrineController::class, 'doar'])->name('vitrine.doar');
     });
 
     // 📩 Rota de Escrita (Formulário) - Onde o Lead é CRIADO
-    // Limite SEVERO para evitar spam bots
     Route::post('/adote/{animal_uuid}/solicitar', [VitrineAdoptionController::class, 'store'])
         ->middleware('throttle:5,1') 
         ->name('vitrine.adote.store');
 
-}); // <--- OU ESTE FECHAMENTO AQUI FOI DELETADO NA CÓPIA.
+});

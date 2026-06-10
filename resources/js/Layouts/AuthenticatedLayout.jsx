@@ -29,7 +29,6 @@ const IconSair = () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
 );
 
-// Ícones Novos para o Mobile Header
 const IconHamburger = () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
 );
@@ -37,7 +36,6 @@ const IconClose = () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
 );
 
-// ── Navlink Base ──────────────────────────────────────────────────────────────
 function NavLink({ href, icon, label, active }) {
     return (
         <Link
@@ -54,28 +52,31 @@ function NavLink({ href, icon, label, active }) {
     );
 }
 
-// ── Layout Principal ──────────────────────────────────────────────────────────
 export default function AuthenticatedLayout({ user, header, children }) {
     const { url } = usePage();
     
-    // 1. Novos estados de controle dos Dropdowns
-    const [insumosOpen, setInsumosOpen] = useState(url.startsWith('/insumos'));
-    // O menu de adoções deve abrir se a URL for /adoptions OU /adopters
-    const [adocoesOpen, setAdocoesOpen] = useState(url.startsWith('/adoptions') || url.startsWith('/adopters'));
+    // Ignora os parâmetros (ex: ?search=) ao setar os estados iniciais dos dropdowns
+    const baseUrl = url.split('?')[0];
+
+    const [insumosOpen, setInsumosOpen] = useState(baseUrl.startsWith('/insumos') || baseUrl.startsWith('/inventory'));
+    const [adocoesOpen, setAdocoesOpen] = useState(baseUrl.startsWith('/adoptions') || baseUrl.startsWith('/adopters'));
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         setMobileMenuOpen(false);
     }, [url]);
 
-    const isActive = (path) => path === '/' ? url === '/' : url.startsWith(path);
+    const isActive = (path) => {
+        // Ignora os parâmetros GET para manter o menu ativo mesmo com buscas
+        const cleanUrl = url.split('?')[0];
+        return path === '/' ? cleanUrl === '/' : cleanUrl.startsWith(path);
+    };
 
     const renderNavItems = () => (
         <>
             <NavLink href="/animals" icon={<IconAnimais />} label="Animais" active={isActive('/animals')} />
             <NavLink href="/temporary-homes" icon={<IconLares />} label="Lares temporários" active={isActive('/temporary-homes')} />
 
-            {/* ── Dropdown: Módulo de Adoções ── */}
             <div>
                 <button
                     onClick={() => setAdocoesOpen((o) => !o)}
@@ -96,115 +97,96 @@ export default function AuthenticatedLayout({ user, header, children }) {
 
                 {adocoesOpen && (
                     <div className="ml-8 mt-1 space-y-0.5">
-                        {/* 1. Topo do Funil: Pessoas que demonstraram interesse na Landing Page */}
-                        <NavLink 
-                            href="/adoptions/requests" 
-                            icon={null} 
-                            label="Interessados" 
-                            active={isActive('/adoptions/requests')} 
-                        />
-                        
-                        {/* 2. Meio do Funil: Pessoas já cadastradas com CPF aprovado */}
-                        <NavLink 
-                            href="/adopters" 
-                            icon={null} 
-                            label="Adotantes" 
-                            active={isActive('/adopters')} 
-                        />
-                        
-                        {/* 3. Fundo do Funil: Histórico dos contratos de adoção efetivados */}
-                        <NavLink 
-                            href="/adoptions" 
-                            icon={null} 
-                            label="Animais Adotados" 
-                            active={isActive('/adoptions')} 
-                        />
+                        <NavLink href="/adoptions/requests" icon={null} label="Interessados" active={isActive('/adoptions/requests')} />
+                        <NavLink href="/adopters" icon={null} label="Adotantes" active={isActive('/adopters')} />
+                        {/* 💡 Correção da marcação do Animais Adotados ignorando parâmetros */}
+                        <NavLink href="/adoptions" icon={null} label="Animais Adotados" active={url.split('?')[0] === '/adoptions'} />
                     </div>
                 )}
             </div>
-           {/* ── Dropdown: Módulo de Insumos ── */}
-<div>
-    <button
-        onClick={() => setInsumosOpen((o) => !o)}
-        className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
-            isActive('/insumos')
-                ? 'bg-gray-900 text-white'
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-        }`}
-    >
-        <span className="flex items-center gap-3">
-            <span className={isActive('/insumos') ? 'text-white' : 'text-gray-400'}>
-                <IconInsumos />
-            </span>
-            Insumos
-        </span>
-        <IconChevron open={insumosOpen} />
-    </button>
+           
+            <div>
+                <button
+                    onClick={() => setInsumosOpen((o) => !o)}
+                    className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                        isActive('/inventory') || isActive('/insumos')
+                            ? 'bg-gray-900 text-white'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                >
+                    <span className="flex items-center gap-3">
+                        <span className={isActive('/inventory') || isActive('/insumos') ? 'text-white' : 'text-gray-400'}>
+                            <IconInsumos />
+                        </span>
+                        Insumos
+                    </span>
+                    <IconChevron open={insumosOpen} />
+                </button>
 
-    {insumosOpen && (
-        <div className="ml-8 mt-1 space-y-0.5">
-            {/* O helper isActive garante que APENAS a página acessada no momento fique com fundo escuro */}
-            <NavLink href="/inventory/food" icon={null} label="Ração" active={isActive('/inventory/food')} />
-            <NavLink href="/inventory/medications" icon={null} label="Medicamentos" active={isActive('/inventory/medications')} />
-            <NavLink href="/inventory/hygiene" icon={null} label="Higiene" active={isActive('/inventory/hygiene')} />
-            <NavLink href="/inventory/cleaning" icon={null} label="Limpeza" active={isActive('/inventory/cleaning')} />
-        </div>
-    )}
-</div>
+                {insumosOpen && (
+                    <div className="ml-8 mt-1 space-y-0.5">
+                        <NavLink href="/inventory/food" icon={null} label="Ração" active={isActive('/inventory/food')} />
+                        <NavLink href="/inventory/medications" icon={null} label="Medicamentos" active={isActive('/inventory/medications')} />
+                        <NavLink href="/inventory/hygiene" icon={null} label="Higiene" active={isActive('/inventory/hygiene')} />
+                        <NavLink href="/inventory/cleaning" icon={null} label="Limpeza" active={isActive('/inventory/cleaning')} />
+                    </div>
+                )}
+            </div>
             <NavLink href="/volunteers" icon={<IconVoluntarios />} label="Voluntários" active={isActive('/volunteers')} />
         </>
     );
 
     return (
-        // flex-col no mobile (para acomodar o Header), flex-row no Desktop
         <div className="flex flex-col md:flex-row h-screen bg-gray-50 font-sans overflow-hidden">
-
-            {/* ── Mobile Header ── */}
             <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 z-30 relative">
                 <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white">
-                        <PawIcon />
+                    {/* 💡 Logo Dinâmica / Mobile */}
+                    <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white overflow-hidden shrink-0">
+                        {user?.ong?.logo_path ? (
+                            <img src={`/storage/${user.ong.logo_path}`} alt="Logo da ONG" className="w-full h-full object-cover" />
+                        ) : (
+                            <PawIcon />
+                        )}
                     </div>
-                    <span className="text-sm font-bold text-gray-900">Logo</span>
+                    {/* 💡 Nome Dinâmico com fallback elegante / Mobile */}
+                    <span className="text-sm font-bold text-gray-900 truncate max-w-[150px]">
+                        {user?.ong?.name || 'Logo'}
+                    </span>
                 </div>
-                <button
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none"
-                    aria-label="Abrir menu"
-                >
+                <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none">
                     {mobileMenuOpen ? <IconClose /> : <IconHamburger />}
                 </button>
             </header>
 
-            {/* ── Mobile Dropdown (Absolute Overlay) ── */}
             {mobileMenuOpen && (
                 <div className="md:hidden absolute top-[57px] left-0 w-full bg-white border-b border-gray-100 shadow-lg z-20 flex flex-col max-h-[calc(100vh-57px)] overflow-y-auto">
                     <nav className="flex-1 px-4 py-4 space-y-1">
                         {renderNavItems()}
                     </nav>
                     <div className="px-4 py-4 border-t border-gray-100">
-                        {/* Importante: Mantenha o método POST para logout para proteção contra CSRF */}
-                        <Link
-                            href={route('logout')}
-                            method="post"
-                            as="button"
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150"
-                        >
+                        <Link href={route('logout')} method="post" as="button" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150">
                             <span className="text-gray-400"><IconSair /></span> Sair
                         </Link>
                     </div>
                 </div>
             )}
 
-            {/* ── Desktop Sidebar ── */}
             <aside className="hidden md:flex w-[240px] flex-shrink-0 bg-white border-r border-gray-100 flex-col h-full z-10">
                 <div className="px-4 py-5 border-b border-gray-100">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 bg-gray-900 rounded-lg flex items-center justify-center text-white">
-                            <PawIcon />
+                        {/* 💡 Logo Dinâmica / Desktop */}
+                        <div className="w-9 h-9 bg-gray-900 rounded-lg flex items-center justify-center text-white shadow-sm overflow-hidden shrink-0">
+                            {user?.ong?.logo_path ? (
+                                <img src={`/storage/${user.ong.logo_path}`} alt="Logo da ONG" className="w-full h-full object-cover" />
+                            ) : (
+                                <PawIcon />
+                            )}
                         </div>
-                        <div className="leading-tight">
-                            <p className="text-sm font-bold text-gray-900">Logo</p>
+                        <div className="leading-tight overflow-hidden">
+                            {/* 💡 Nome Dinâmico com fallback elegante / Desktop */}
+                            <p className="text-sm font-bold text-gray-900 truncate w-40" title={user?.ong?.name}>
+                                {user?.ong?.name || 'Logo'}
+                            </p>
                             <p className="text-[10px] text-gray-400">Administrativo</p>
                         </div>
                     </div>
@@ -215,19 +197,12 @@ export default function AuthenticatedLayout({ user, header, children }) {
                 </nav>
 
                 <div className="px-2 py-4 border-t border-gray-100">
-                    <Link
-                        href={route('logout')}
-                        method="post"
-                        as="button"
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150"
-                    >
+                    <Link href={route('logout')} method="post" as="button" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150">
                         <span className="text-gray-400"><IconSair /></span> Sair
                     </Link>
                 </div>
             </aside>
 
-            {/* ── Main content ── */}
-            {/* relative e z-0 garantem que o menu dropdown mobile sobreponha este container */}
             <div className="flex-1 flex flex-col overflow-hidden relative z-0">
                 {header && (
                     <header className="bg-white border-b border-gray-100 px-8 py-4 hidden md:block">

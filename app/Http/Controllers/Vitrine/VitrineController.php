@@ -4,44 +4,59 @@ namespace App\Http\Controllers\Vitrine;
 
 use App\Http\Controllers\Controller;
 use App\Models\Animal;
+use Inertia\Inertia;
+use Illuminate\Http\Request;
 
 class VitrineController extends Controller
 {
-    // 1. Rota da Home (Ex: /gatomestre)
-    public function home($slug)
+    public function home(Request $request, $slug)
     {
-        return inertia('Vitrine/Home', [
+        return Inertia::render('Vitrine/Home', ['slug' => $slug]);
+    }
+
+    public function adote(Request $request, $slug)
+    {
+        $tenantId = app('tenant_id');
+
+        $pets = Animal::with(['breed', 'temporaryHome.address'])
+            ->where('ong_id', $tenantId)
+            ->whereIn('status', ['available', 'foster_care'])
+            ->latest()
+            ->paginate(12);
+
+        return Inertia::render('Vitrine/Adote', [
+            'pets' => $pets,
             'slug' => $slug
         ]);
     }
 
-    // 2. Rota de Adoção (Ex: /gatomestre/adote)
-    public function adote($slug)
+    public function comoAdotar($slug)
     {
-        $ongId = app('tenant_id');
+        return Inertia::render('Vitrine/ComoAdotar', ['slug' => $slug]);
+    }
 
-        // 🚨 ÁREA DE DEBUG: Se a página carregar sem animais, remova os comentários 
-        // (/* e */) das linhas abaixo, recarregue a página e me mande o resultado!
-        
-        /*
-        $todosAnimais = Animal::where('ong_id', $ongId)->get();
-        dd([
-            'ONG_ID_RESOLVIDO' => $ongId,
-            'SLUG' => $slug,
-            'TOTAL_DE_ANIMAIS_NO_BANCO' => $todosAnimais->count(),
-            'DADOS_CRUS' => $todosAnimais->toArray()
-        ]);
-        */
+    public function quemSomos($slug)
+    {
+        return Inertia::render('Vitrine/QuemSomos', ['slug' => $slug]);
+    }
 
-        // Busca apenas os animais disponíveis
-        $pets = Animal::where('ong_id', $ongId)
-               ->where('status', 'available')
-               ->latest()
-               ->get(); 
+    public function doar($slug)
+    {
+        return Inertia::render('Vitrine/Doar', ['slug' => $slug]);
+    }
+    public function showAnimal($slug, $animalId)
+    {
+        $tenantId = app('tenant_id');
 
-        return inertia('Vitrine/Adote', [
-            'pets' => $pets,
-            'slug' => $slug
+        // Busca o animal garantindo que pertence à ONG atual e está disponível
+        $animal = Animal::with(['breed'])
+            ->where('ong_id', $tenantId)
+            ->where('id', $animalId)
+            ->firstOrFail();
+
+        return Inertia::render('Vitrine/AnimalDetails', [
+            'slug' => $slug,
+            'animal' => $animal
         ]);
     }
 }
