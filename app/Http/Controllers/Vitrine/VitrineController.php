@@ -44,4 +44,19 @@ class VitrineController extends Controller
     {
         return Inertia::render('Vitrine/Doar', ['slug' => $slug]);
     }
+    public function showAnimal($slug, $animalId)
+    {
+        $tenantId = app('tenant_id');
+
+        // Busca o animal garantindo que pertence à ONG atual e está disponível
+        $animal = Animal::with(['breed'])
+            ->where('ong_id', $tenantId)
+            ->where('id', $animalId)
+            ->firstOrFail();
+
+        return Inertia::render('Vitrine/AnimalDetails', [
+            'slug' => $slug,
+            'animal' => $animal
+        ]);
+    }
 }

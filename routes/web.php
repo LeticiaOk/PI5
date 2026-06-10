@@ -113,6 +113,7 @@ Route::prefix('{slug}')->middleware(['web', 'resolve.tenant'])->group(function (
     Route::middleware('throttle:60,1')->group(function () {
         Route::get('/', [VitrineController::class, 'home'])->name('vitrine.home'); 
         Route::get('/adote', [VitrineController::class, 'adote'])->name('vitrine.adote');
+        Route::get('/animal/{animal}', [VitrineController::class, 'showAnimal'])->name('vitrine.animal.show');
         Route::get('/como-adotar', [VitrineController::class, 'comoAdotar'])->name('vitrine.como-adotar');
         Route::get('/quem-somos', [VitrineController::class, 'quemSomos'])->name('vitrine.quem-somos');
         Route::get('/doar', [VitrineController::class, 'doar'])->name('vitrine.doar');
