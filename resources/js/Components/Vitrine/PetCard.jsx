@@ -1,5 +1,7 @@
 // resources/js/Components/Vitrine/PetCard.jsx
 
+import { Link } from '@inertiajs/react'; // 💡 Importação essencial
+
 // ── Traduções e Mapeamentos Visuais ─────────────────────────────────────────
 const translate = {
     species: { dog: 'Cachorro', cat: 'Gato', other: 'Outro' },
@@ -38,12 +40,17 @@ const calculateAge = (birthDate) => {
     return `${years} ${years === 1 ? 'ano' : 'anos'}`;
 };
 
-export default function PetCard({ pet, onAdoptClick }) {
+// 💡 Adicionamos a prop profileUrl aqui
+export default function PetCard({ pet, profileUrl, onAdoptClick }) {
     const ageText = calculateAge(pet.estimated_birth_date || pet.birth_date);
     const imageSource = pet.photo_url || (pet.photo ? `/storage/${pet.photo}` : null);
 
     return (
-        <div className="group bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
+        /* 💡 DE <div> PARA <Link> - O card inteiro agora é clicável */
+        <Link 
+            href={profileUrl} 
+            className="group bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col cursor-pointer block"
+        >
             
             {/* ── Imagem do Animal ───────────────────────────────────────────── */}
             <div className="h-64 bg-gray-100 relative overflow-hidden">
@@ -92,12 +99,17 @@ export default function PetCard({ pet, onAdoptClick }) {
 
                 {/* Botão de Ação Primário */}
                 <button 
-                    onClick={onAdoptClick}
+                    onClick={(e) => {
+                        // 💡 A MÁGICA ESTÁ AQUI: Isso impede que o clique no botão ative o <Link>
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onAdoptClick();
+                    }}
                     className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white font-bold text-sm rounded-2xl transition-all shadow-sm active:scale-[0.98]"
                 >
                     Quero adotar
                 </button>
             </div>
-        </div>
+        </Link>
     );
 }
