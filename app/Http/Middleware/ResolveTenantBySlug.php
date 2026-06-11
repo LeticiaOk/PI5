@@ -18,8 +18,8 @@ class ResolveTenantBySlug
         // Resolve a ONG Trazendo as configurações junto (Eager Loading)
         $ong = Ong::with('settings')->where('slug', $slug)->firstOrFail();
         
-        // Registra o ID do tenant no Container (para ser usado pelo Controller)
-        App::instance('tenant_id', $ong->id);
+        // Registra o ID do tenant usando a MESMA CHAVE do painel
+        app()->instance('currentTenant', $ong->id);
 
         //  MÁGICA: Compartilha os dados da ONG globalmente com a Landing Page
         Inertia::share([

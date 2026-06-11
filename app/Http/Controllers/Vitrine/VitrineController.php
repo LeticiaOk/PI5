@@ -16,7 +16,7 @@ class VitrineController extends Controller
 
     public function adote(Request $request, $slug)
     {
-        $tenantId = app('tenant_id');
+        $tenantId = app('currentTenant');
 
         $pets = Animal::with(['breed', 'temporaryHome.address'])
             ->where('ong_id', $tenantId)
@@ -46,7 +46,7 @@ class VitrineController extends Controller
     }
     public function showAnimal($slug, $animalId)
     {
-        $tenantId = app('tenant_id');
+        $tenantId = app('currentTenant');
 
         // Busca o animal garantindo que pertence à ONG atual e está disponível
         $animal = Animal::with(['breed'])

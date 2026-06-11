@@ -5,20 +5,17 @@ namespace Database\Seeders;
 use App\Models\Ong;
 use App\Models\User;
 use App\Models\Animal;
-use App\Models\Adopter; 
 use App\Models\Breed;
 use App\Models\OngSetting;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
-use Faker\Factory as Faker; 
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = Faker::create('pt_BR');
-
+        // 1. Chama as Raças Primeiro
         $this->call([
             BreedSeeder::class,
         ]);
@@ -26,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $poodle = Breed::where('name', 'Poodle')->first();
         $persa = Breed::where('name', 'Persa')->first();
 
+        // 2. Super Admin
         User::withoutEvents(function () {
             User::create([
                 'name' => 'Super Admin SaaS',
@@ -35,7 +33,7 @@ class DatabaseSeeder extends Seeder
             ]);
         });
 
-        // ONG 1 - Cão Feliz
+        // 3. ONG 1 - Cão Feliz
         $ong1 = Ong::create([
             'id' => Str::uuid(),
             'slug' => 'caofeliz',
@@ -67,7 +65,7 @@ class DatabaseSeeder extends Seeder
             'ong_id' => $ong1->id,
             'name' => 'Rex',
             'species' => 'dog',
-            'breed_id' => $poodle->id,
+            'breed_id' => $poodle->id, // Usa a raça inserida pelo BreedSeeder
             'gender' => 'male',
             'size' => 'large',
             'arrival_date' => now()->subMonths(2),
@@ -78,27 +76,7 @@ class DatabaseSeeder extends Seeder
             'description' => 'Um cão muito brincalhão e protetor.'
         ]);
 
-        for ($i = 0; $i < 2; $i++) {
-            $adopter = Adopter::withoutGlobalScopes()->create([
-                'ong_id' => $ong1->id,
-                'name'   => $faker->name,
-                'cpf'    => $faker->cpf(false), 
-                'phone'  => $faker->cellphoneNumber,
-                'email'  => $faker->unique()->safeEmail,
-            ]);
-
-            $adopter->address()->create([
-                'ong_id'       => $ong1->id,
-                'zip_code'     => $faker->postcode,
-                'street'       => $faker->streetName,
-                'number'       => $faker->buildingNumber,
-                'neighborhood' => 'Bairro ' . $faker->word,
-                'city'         => $faker->city,
-                'state'        => $faker->stateAbbr, 
-            ]);
-        }
-
-        // ONG 2 - Gato Mestre
+        // 4. ONG 2 - Gato Mestre
         $ong2 = Ong::create([
             'id' => Str::uuid(),
             'slug' => 'gatomestre',
@@ -130,7 +108,7 @@ class DatabaseSeeder extends Seeder
             'ong_id' => $ong2->id,
             'name' => 'Mingau',
             'species' => 'cat',
-            'breed_id' => $persa->id,
+            'breed_id' => $persa->id, // Usa a raça inserida pelo BreedSeeder
             'gender' => 'female',
             'size' => 'small',
             'arrival_date' => now()->subDays(15),
@@ -140,10 +118,5 @@ class DatabaseSeeder extends Seeder
             'status' => 'foster_care',
             'description' => 'Uma gatinha dócil que adora colo.'
         ]);
-
-        // Ignora os escopos globais para a factory conseguir puxar animais aleatórios
-        \App\Models\AdoptionRequest::withoutGlobalScopes(function () {
-            \App\Models\AdoptionRequest::factory(30)->create();
-        });
     }
 }
