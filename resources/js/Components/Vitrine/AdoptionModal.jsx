@@ -12,6 +12,8 @@ export default function AdoptionModal({ pet, slug, onClose }) {
         adopter_name: '',
         adopter_email: '',
         adopter_phone: '',
+        terms_accepted: false, 
+        accepts_marketing: false, 
     });
 
     const submit = (e) => {
@@ -127,11 +129,41 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                                 )}
                             </div>
 
-                            <p className="text-[11px] text-gray-400 leading-normal pt-1">
-                                Ao enviar, você concorda que a adoção é um ato de responsabilidade e que os dados serão usados exclusivamente para este processo seletivo.
-                            </p>
+                            {/* CHECKBOX 1: TERMOS (Obrigatório) */}
+                            <div className="flex items-start mt-4">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        id="terms"
+                                        type="checkbox"
+                                        required
+                                        checked={data.terms_accepted}
+                                        onChange={(e) => setData('terms_accepted', e.target.checked)}
+                                        className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-2 focus:ring-indigo-500 text-indigo-600"
+                                    />
+                                </div>
+                                <label htmlFor="terms" className="ml-2 text-xs text-gray-500 leading-tight">
+                                    Li e aceito os <a href="#" className="text-indigo-600 hover:underline">Termos de Uso</a> e autorizo o uso dos meus dados para este processo. <span className="text-red-500">*</span>
+                                </label>
+                            </div>
+                            {errors.terms_accepted && <p className="text-red-500 text-xs mt-1">{errors.terms_accepted}</p>}
 
-                            <div className="pt-4 flex flex-col sm:flex-row-reverse gap-3">
+                            {/* CHECKBOX 2: MARKETING (Opcional) */}
+                            <div className="flex items-start mt-2 mb-2">
+                                <div className="flex items-center h-5">
+                                    <input
+                                        id="marketing"
+                                        type="checkbox"
+                                        checked={data.accepts_marketing}
+                                        onChange={(e) => setData('accepts_marketing', e.target.checked)}
+                                        className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-2 focus:ring-indigo-500 text-indigo-600"
+                                    />
+                                </div>
+                                <label htmlFor="marketing" className="ml-2 text-xs text-gray-500 leading-tight">
+                                    Aceito receber novidades e campanhas de parceiros da plataforma. (Opcional)
+                                </label>
+                            </div>
+
+                            <div className="pt-2 flex flex-col sm:flex-row-reverse gap-3">
                                 <button
                                     type="submit"
                                     disabled={processing}

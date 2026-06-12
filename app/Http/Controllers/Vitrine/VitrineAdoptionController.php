@@ -5,21 +5,24 @@ namespace App\Http\Controllers\Vitrine;
 use App\Http\Controllers\Controller;
 use App\Models\AdoptionRequest;
 use App\Models\Animal;
+use App\Models\Ong;
 use Illuminate\Http\Request;
 
 class VitrineAdoptionController extends Controller
 {
-    // Adicionei o $slug na assinatura do método para bater com o Route::prefix('{slug}')
-    public function store(Request $request, $slug, $animal_uuid)
+   public function store(Request $request, $slug, $animal_uuid)
     {
-        // O tenant_id já foi injetado pelo middleware da vitrine (ResolveTenantBySlug)
-        $ongId = app('tenant_id');
+        // 🛡️ SOLUÇÃO BLINDADA: Como temos o $slug na URL, buscamos a ONG diretamente
+        $ong = Ong::where('slug', $slug)->firstOrFail();
+        $ongId = $ong->id;
 
-        // 1. Validação CORRIGIDA (sem a regra strip_tags que não existe no Laravel)
+        // 1. Validação
         $validated = $request->validate([
             'adopter_name'  => 'required|string|max:100', 
             'adopter_email' => 'required|email:rfc,dns|max:150',
-            'adopter_phone' => 'required|string|max:20', 
+            'adopter_phone' => 'required|string|max:20',
+            'terms_accepted' => 'accepted',
+            'accepts_marketing' => 'boolean' 
         ]);
 
         // 2. Verifica se o animal existe, pertence à ONG e está disponível
@@ -45,9 +48,11 @@ class VitrineAdoptionController extends Controller
             'adopter_name'  => strip_tags($validated['adopter_name']),
             'adopter_email' => $validated['adopter_email'],
             'adopter_phone' => $validated['adopter_phone'],
+            'terms_accepted'  => true,
+            'accepts_marketing' => $request->boolean('accepts_marketing'),
             'status'        => 'pending',
         ]);
 
-        return back()->with('success', 'Sua solicitação foi enviada! A ONG entrará em contato em breve.');
+        return back()->with('success', 'Sua solicitação foi enviada! A Instituição entrará em contato em breve.');
     }
 }

@@ -1,24 +1,16 @@
-// resources/js/Pages/Vitrine/Adote.jsx
-
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useState, useMemo } from 'react';
 import PetCard from '@/Components/Vitrine/PetCard';
 import AdoptionModal from '@/Components/Vitrine/AdoptionModal';
 
-// ── Ícones Customizados ─────────────
-const PawIcon = () => (
-    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C10.5 2 9.2 3.2 9.2 4.7C9.2 6.2 10.5 7.5 12 7.5C13.5 7.5 14.8 6.2 14.8 4.7C14.8 3.2 13.5 2 12 2ZM6.5 6C5.1 6 4 7.1 4 8.5C4 9.9 5.1 11 6.5 11C7.9 11 9 9.9 9 8.5C9 7.1 7.9 6 6.5 6ZM17.5 6C16.1 6 15 7.1 15 8.5C15 9.9 16.1 11 17.5 11C18.9 11 20 9.9 20 8.5C20 7.1 18.9 6 17.5 6ZM12 10C9.2 10 7 12.2 7 15C7 18 9 22 12 22C15 22 17 18 17 15C17 12.2 14.8 10 12 10Z"/></svg>
-);
 const SearchIcon = () => (
     <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" strokeLinecap="round" /></svg>
 );
 
 export default function Adote({ pets = [], slug }) {
-    // 💡 Pegando os dados ESTritamente do Banco de Dados via Middleware
     const { tenant } = usePage().props;
-    const settings = tenant.settings; // O seeder garante que isso existe!
+    const settings = tenant.settings; 
     
-    // Sem fallbacks estáticos no JSX. Puxando puro do BD.
     const primaryColor = settings.primary_color; 
     const heroTitle = settings.hero_title;
     const heroSubtitle = settings.hero_subtitle;
@@ -28,7 +20,6 @@ export default function Adote({ pets = [], slug }) {
     const [search, setSearch] = useState('');
     const [selectedSpecies, setSelectedSpecies] = useState('all');
     const [selectedSize, setSelectedSize] = useState('all');
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const filteredPets = useMemo(() => {
         const petList = Array.isArray(pets) ? pets : (pets.data || []);
@@ -44,60 +35,8 @@ export default function Adote({ pets = [], slug }) {
     }, [pets, search, selectedSpecies, selectedSize]);
 
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-800 antialiased font-sans">
+        <div className="min-h-screen bg-gray-50 text-gray-800 antialiased font-sans pb-12">
             <Head title={`Adote - ${ongName}`} />
-
-            {/* ── HEADER RESPONSIVO ──────────────────────────────────────────────── */}
-            <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-20">
-                        
-                        {/* 🛡️ ROTA CORRIGIDA: Clicar na logo mantém o usuário na Vitrine da ONG (/${slug}) */}
-                        <Link href={`/${slug}`} className="flex items-center gap-2" style={{ color: primaryColor }}>
-                            <span className="p-2 rounded-xl" style={{ backgroundColor: `${primaryColor}15` }}>
-                                <PawIcon />
-                            </span>
-                            <span className="font-black text-xl tracking-tight text-gray-900">
-                                {ongName}
-                            </span>
-                        </Link>
-
-                        {/* 🛡️ ROTAS CORRIGIDAS: Todos os links agora respeitam o contexto do Tenant */}
-                        <nav className="hidden md:flex items-center gap-8 font-medium text-sm text-gray-600">
-                            <Link href={`/${slug}`} className="font-semibold py-1 border-b-2" style={{ color: primaryColor, borderColor: primaryColor }}>Animais</Link>
-                            <Link href={`/${slug}/como-adotar`} className="hover:text-gray-900 transition-colors">Como Adotar</Link>
-                            <Link href={`/${slug}/quem-somos`} className="hover:text-gray-900 transition-colors">Quem Somos</Link>
-                        </nav>
-
-                        <div className="hidden md:block">
-                            <Link 
-                                href={`/${slug}/doar`} 
-                                className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold text-white rounded-xl shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-                                style={{ backgroundColor: primaryColor }}
-                            >
-                                ❤️ Faça uma doação
-                            </Link>
-                        </div>
-
-                        <div className="md:hidden">
-                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {isMenuOpen && (
-                    <div className="md:hidden bg-white border-b border-gray-100 p-4 space-y-3 shadow-inner animate-fade-in">
-                        <Link href={`/${slug}`} className="block px-4 py-2 text-base font-semibold rounded-lg" style={{ color: primaryColor, backgroundColor: `${primaryColor}10` }}>Animais</Link>
-                        <Link href={`/${slug}/como-adotar`} className="block px-4 py-2 text-base font-medium text-gray-600 hover:bg-gray-50 rounded-lg">Como Adotar</Link>
-                        <Link href={`/${slug}/quem-somos`} className="block px-4 py-2 text-base font-medium text-gray-600 hover:bg-gray-50 rounded-lg">Quem Somos</Link>
-                        <Link href={`/${slug}/doar`} className="block w-full text-center px-4 py-3 text-base font-bold text-white rounded-lg shadow-sm" style={{ backgroundColor: primaryColor }}>❤️ Faça uma doação</Link>
-                    </div>
-                )}
-            </header>
 
             {/* ── HERO BANNER DINÂMICO ───────────────────────────────────────────── */}
             <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 py-16 sm:py-24 border-b border-gray-100">
@@ -186,7 +125,7 @@ export default function Adote({ pets = [], slug }) {
                 </div>
             </section>
 
-            {/* ── LISTAGEM DE ANIMAIS (CONTEÚDO PRINCIPAL) ─────────────────────── */}
+            {/* ── LISTAGEM DE ANIMAIS ─────────────────────── */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 {filteredPets.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
@@ -217,7 +156,7 @@ export default function Adote({ pets = [], slug }) {
                 )}
             </main>
 
-            {/* Modais de Interação */}
+            {/* Modal de Adoção onde o Formulário realmente fica! */}
             {selectedPet && (
                 <AdoptionModal 
                     pet={selectedPet} 
@@ -225,11 +164,6 @@ export default function Adote({ pets = [], slug }) {
                     onClose={() => setSelectedPet(null)} 
                 />
             )}
-
-            {/* Footer da Vitrine Pública */}
-            <footer className="bg-white border-t border-gray-100 py-8 text-center text-xs font-medium text-gray-400">
-                <p>© {new Date().getFullYear()} {ongName}. Desenvolvido com amor e dedicação à causa animal.</p>
-            </footer>
         </div>
     );
 }

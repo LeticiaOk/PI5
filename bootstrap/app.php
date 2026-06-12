@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             // O seu middleware interno (Painel da ONG)
             'tenant' => \App\Http\Middleware\IdentifyTenant::class,
+            'superadmin' => \App\Http\Middleware\IsSuperAdmin::class,
             
             // O NOVO middleware público (Vitrine)
             'resolve.tenant' => \App\Http\Middleware\ResolveTenantBySlug::class,

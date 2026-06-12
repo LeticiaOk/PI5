@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AnimalController;
 use App\Http\Controllers\AdopterController;
@@ -22,11 +23,20 @@ Route::get('/', function () {
     ]);
 })->middleware('throttle:60,1'); // 🛡️ Mantivemos a sua proteção contra spam!
 
-// ── ÁREA DE USUÁRIO (Sessão, mas independente de ONG) ─────────────────────────
-Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
+// ── ÁREA DE USUÁRIO (Sessão) ─────────────────────────
+Route::middleware(['auth', 'verified'])->group(function () {
+    
+    // Rota de Triagem (O Guarda de Trânsito)
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
+        // 1. Se for o Dono do SaaS (Super Admin), manda pro Olimpo
+        if (auth()->user()->ong_id === null) {
+            return redirect()->route('superadmin.dashboard');
+        }
+        
+        // 2. Se for uma ONG (tem ong_id), renderiza o painel normal
+        return Inertia\Inertia::render('Dashboard');
     })->name('dashboard');
+
 });
 
 Route::middleware(['auth', 'throttle:60,1'])->group(function () {
@@ -137,4 +147,15 @@ Route::prefix('{slug}')->middleware(['web', 'resolve.tenant'])->group(function (
         ->middleware('throttle:5,1') 
         ->name('vitrine.adote.store');
 
+});
+
+// ==============================================================================
+// 👑 ÁREA DO SUPER ADMIN (Dono do SaaS) - ATUALIZADO
+// ==============================================================================
+Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('superadmin.')->group(function () {
+    
+    // 👇 Mudamos apenas esta linha para chamar o Controller que criamos!
+    Route::get('/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('dashboard');
+
+    // Aqui entrarão as rotas de Leads e CRUD de ONGs depois...
 });

@@ -21,6 +21,8 @@ class AdoptionRequest extends Model
         'adopter_email',
         'adopter_phone',
         'status',
+        'accepts_marketing',
+        'terms_accepted',
     ];
 
     /**

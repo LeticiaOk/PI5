@@ -14,13 +14,13 @@ class VitrineController extends Controller
         return Inertia::render('Vitrine/Home', ['slug' => $slug]);
     }
 
-    public function adote(Request $request, $slug)
+ public function adote(Request $request, $slug)
     {
         $tenantId = app('currentTenant');
 
         $pets = Animal::with(['breed', 'temporaryHome.address'])
             ->where('ong_id', $tenantId)
-            ->whereIn('status', ['available', 'foster_care'])
+            ->where('status', 'available') // 👈 Limpamos o array e deixamos só o available
             ->latest()
             ->paginate(12);
 
@@ -44,14 +44,15 @@ class VitrineController extends Controller
     {
         return Inertia::render('Vitrine/Doar', ['slug' => $slug]);
     }
+
     public function showAnimal($slug, $animalId)
     {
         $tenantId = app('currentTenant');
 
-        // Busca o animal garantindo que pertence à ONG atual e está disponível
         $animal = Animal::with(['breed'])
             ->where('ong_id', $tenantId)
             ->where('id', $animalId)
+            ->where('status', 'available') // 👈 Adicionado aqui para barrar acessos por link direto!
             ->firstOrFail();
 
         return Inertia::render('Vitrine/AnimalDetails', [
