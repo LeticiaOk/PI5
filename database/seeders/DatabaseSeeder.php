@@ -118,5 +118,12 @@ class DatabaseSeeder extends Seeder
             'status' => 'foster_care',
             'description' => 'Uma gatinha dócil que adora colo.'
         ]);
+
+         User::create([
+            'name' => 'Otávio Roschel',
+            'email' => 'otavioroschel@gmail.com',
+            'password' => Hash::make('senha123'),
+            'ong_id' => $ong1->id,
+        ]);
     }
 }

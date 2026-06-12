@@ -15,9 +15,12 @@ use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 
 // ── ROTAS DE REDIRECIONAMENTO ─────────────────────────────────────────────────
+
 Route::get('/', function () {
-    return redirect()->route('login');
-})->middleware('throttle:60,1');
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'), // Avisa o React se o sistema de login está ativo
+    ]);
+})->middleware('throttle:60,1'); // 🛡️ Mantivemos a sua proteção contra spam!
 
 // ── ÁREA DE USUÁRIO (Sessão, mas independente de ONG) ─────────────────────────
 Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
