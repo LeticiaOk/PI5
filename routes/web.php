@@ -9,7 +9,7 @@ use App\Http\Controllers\AnimalController;
 use App\Http\Controllers\AdopterController;
 use App\Http\Controllers\AdoptionController;
 use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\AdoptionRequestController;
+use App\Http\Controllers\Admin\AdoptionRequestController;
 use App\Http\Controllers\TemporaryHomeController;
 use App\Http\Controllers\VolunteerController;
 use App\Http\Controllers\Vitrine\VitrineController;
