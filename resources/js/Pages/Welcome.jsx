@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react'; // 👈 Importado useForm e usePage
 
 const FeatureIcon = ({ path }) => (
     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 mb-4">
@@ -48,8 +48,28 @@ const FAQItem = ({ question, answer, isOpen, onToggle }) => (
 );
 
 export default function Welcome({ auth }) {
-    const [leadForm, setLeadForm] = useState({ name: '', ong: '', email: '', message: '' });
     const [openFaq, setOpenFaq] = useState(0);
+
+    // 💡 Captura os alertas do Laravel de forma reativa pela sessão
+    const { flash } = usePage().props;
+
+    // 💡 Substituído o useState pelo useForm do Inertia com as chaves exatas que o Controller espera
+    const { data, setData, post, processing, errors, reset } = useForm({
+        name: '',
+        ong_name: '',
+        email: '',
+        phone: '', // Campo novo e vital para contato comercial
+        terms_accepted: false, // Campo exigido pela LGPD
+    });
+
+    // 💡 Função de envio conectada ao Inertia
+    const submit = (e) => {
+        e.preventDefault();
+        post(route('landing.lead.store'), {
+            preserveScroll: true,
+            onSuccess: () => reset(), // Limpa tudo se der certo
+        });
+    };
 
     const steps = [
         {
@@ -222,17 +242,92 @@ export default function Welcome({ auth }) {
                 </div>
             </section>
 
-            {/* CONTATO */}
+            {/* CONTATO (Seção Ajustada e Protegida) */}
             <section id="contato" className="py-20 bg-slate-900 text-white">
                 <div className="max-w-2xl mx-auto px-4">
-                    <h2 className="text-3xl font-bold mb-8 text-center">Solicite um convite</h2>
-                    <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <input className="w-full p-3 bg-slate-800 rounded-lg border border-slate-700" placeholder="Seu Nome" />
-                            <input className="w-full p-3 bg-slate-800 rounded-lg border border-slate-700" placeholder="Nome da ONG" />
+                    <h2 className="text-3xl font-bold mb-4 text-center">Solicite um convite</h2>
+                    <p className="text-slate-400 text-sm text-center mb-8">Deixe seus dados e nossa equipe analisará o seu projeto.</p>
+
+                    {/* Alerta de Sucesso Dinâmico */}
+                    {flash?.success && (
+                        <div className="mb-6 p-4 bg-emerald-500/10 text-emerald-400 rounded-xl font-semibold border border-emerald-500/20 text-sm animate-fade-in">
+                            🎉 {flash.success}
                         </div>
-                        <input className="w-full p-3 bg-slate-800 rounded-lg border border-slate-700" type="email" placeholder="Seu E-mail" />
-                        <button className="w-full py-4 bg-indigo-600 font-bold rounded-lg hover:bg-indigo-500">Enviar Solicitação</button>
+                    )}
+
+                    <form className="space-y-4" onSubmit={submit}>
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <input 
+                                    className="w-full p-3 bg-slate-800 rounded-lg border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" 
+                                    placeholder="Seu Nome" 
+                                    value={data.name}
+                                    onChange={e => setData('name', e.target.value)}
+                                    required
+                                />
+                                {errors.name && <p className="text-red-400 text-xs mt-1">⚠️ {errors.name}</p>}
+                            </div>
+                            <div>
+                                <input 
+                                    className="w-full p-3 bg-slate-800 rounded-lg border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" 
+                                    placeholder="Nome da ONG (Opcional)" 
+                                    value={data.ong_name}
+                                    onChange={e => setData('ong_name', e.target.value)}
+                                />
+                                {errors.ong_name && <p className="text-red-400 text-xs mt-1">⚠️ {errors.ong_name}</p>}
+                            </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <input 
+                                    className="w-full p-3 bg-slate-800 rounded-lg border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" 
+                                    type="email" 
+                                    placeholder="Seu E-mail" 
+                                    value={data.email}
+                                    onChange={e => setData('email', e.target.value)}
+                                    required
+                                />
+                                {errors.email && <p className="text-red-400 text-xs mt-1">⚠️ {errors.email}</p>}
+                            </div>
+                            <div>
+                                <input 
+                                    className="w-full p-3 bg-slate-800 rounded-lg border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" 
+                                    type="tel" 
+                                    placeholder="WhatsApp (com DDD)" 
+                                    value={data.phone}
+                                    onChange={e => setData('phone', e.target.value)}
+                                    required
+                                />
+                                {errors.phone && <p className="text-red-400 text-xs mt-1">⚠️ {errors.phone}</p>}
+                            </div>
+                        </div>
+
+                        {/* CHECKBOX OBRIGATÓRIO DA LGPD */}
+                        <div className="flex items-start pt-2">
+                            <div className="flex items-center h-5">
+                                <input
+                                    id="terms"
+                                    type="checkbox"
+                                    required
+                                    checked={data.terms_accepted}
+                                    onChange={e => setData('terms_accepted', e.target.checked)}
+                                    className="w-4 h-4 border border-slate-700 rounded bg-slate-800 focus:ring-offset-slate-900 focus:ring-indigo-500 text-indigo-600"
+                                />
+                            </div>
+                            <label htmlFor="terms" className="ml-2 text-xs text-slate-400 leading-tight select-none">
+                                Aceito os <a href="#" className="text-indigo-400 hover:underline">Termos de Uso</a> e autorizo a PlataformaX a armazenar meus dados para contato e análise de perfil. <span className="text-red-400">*</span>
+                            </label>
+                        </div>
+                        {errors.terms_accepted && <p className="text-red-400 text-xs mt-1">⚠️ {errors.terms_accepted}</p>}
+
+                        <button 
+                            type="submit"
+                            disabled={processing}
+                            className="w-full py-4 bg-indigo-600 font-bold rounded-lg hover:bg-indigo-500 text-white transition-colors disabled:opacity-50 text-sm flex items-center justify-center"
+                        >
+                            {processing ? 'Enviando Solicitação...' : 'Enviar Solicitação 🚀'}
+                        </button>
                     </form>
                 </div>
             </section>

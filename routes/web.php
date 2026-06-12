@@ -1,40 +1,44 @@
 <?php
 
-use App\Http\Controllers\SuperAdmin\DashboardController;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Http;
+use Inertia\Inertia;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BreedController;
 use App\Http\Controllers\AnimalController;
 use App\Http\Controllers\AdopterController;
 use App\Http\Controllers\AdoptionController;
 use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\Admin\AdoptionRequestController;
-use App\Http\Controllers\Vitrine\VitrineController;
-use App\Http\Controllers\Vitrine\VitrineAdoptionController;
+use App\Http\Controllers\AdoptionRequestController;
 use App\Http\Controllers\TemporaryHomeController;
 use App\Http\Controllers\VolunteerController;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Http;
-use Inertia\Inertia;
+use App\Http\Controllers\Vitrine\VitrineController;
+use App\Http\Controllers\Vitrine\VitrineAdoptionController;
+use App\Http\Controllers\Web\LandingLeadController;
+use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 
-// ── ROTAS DE REDIRECIONAMENTO ─────────────────────────────────────────────────
-
+// ── ROTA DA LANDING PAGE ──────────────────────────────
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'), // Avisa o React se o sistema de login está ativo
     ]);
-})->middleware('throttle:60,1'); // 🛡️ Mantivemos a sua proteção contra spam!
+})->middleware('throttle:60,1'); 
 
-// ── ÁREA DE USUÁRIO (Sessão) ─────────────────────────
+// 👈 Rota para capturar o formulário do site público
+Route::post('/landing-leads', [LandingLeadController::class, 'store'])->name('landing.lead.store');
+
+// ── ÁREA DE USUÁRIO (Apenas Triagem) ─────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Rota de Triagem (O Guarda de Trânsito)
+    // 🚦 Rota de Triagem (O Guarda de Trânsito: NÃO RENDERIZA TELA, SÓ REDIRECIONA)
     Route::get('/dashboard', function () {
-        // 1. Se for o Dono do SaaS (Super Admin), manda pro Olimpo
+        // 1. Se for o Dono do SaaS (Super Admin)
         if (auth()->user()->ong_id === null) {
             return redirect()->route('superadmin.dashboard');
         }
         
-        // 2. Se for uma ONG (tem ong_id), renderiza o painel normal
-        return Inertia\Inertia::render('Dashboard');
+        // 2. Se for uma ONG (Manda para o Bunker protegido)
+        return redirect()->route('tenant.dashboard');
     })->name('dashboard');
 
 });
@@ -51,7 +55,13 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
 // ==============================================================================
 Route::middleware(['auth', 'tenant'])->group(function () {
 
-    Route::get('/breeds/{species}', [App\Http\Controllers\BreedController::class, 'bySpecies'])->name('breeds.by-species');
+    // 👇 A ROTA QUE FALTAVA! Agora o painel da ONG está DENTRO da proteção do Tenant
+    Route::get('/painel/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('tenant.dashboard');
+
+
+    Route::get('/breeds/{species}', [BreedController::class, 'bySpecies'])->name('breeds.by-species');
     
     // 🐾 Módulo 1: Prontuários de Animais
     Route::prefix('animals')->name('animals.')->group(function () {
@@ -85,22 +95,21 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     });
 
     // 📦 Módulo 4: Insumos (Inventory)
+    Route::prefix('insumos')->name('inventory.')->group(function () {
+        // As 4 telas separadas
+        Route::get('/racao', [InventoryController::class, 'food'])->name('food');
+        Route::get('/medicamentos', [InventoryController::class, 'medications'])->name('medications');
+        Route::get('/higiene', [InventoryController::class, 'hygiene'])->name('hygiene');
+        Route::get('/limpeza', [InventoryController::class, 'cleaning'])->name('cleaning');
 
-Route::prefix('insumos')->name('inventory.')->group(function () {
-    // As 4 telas separadas
-    Route::get('/racao', [InventoryController::class, 'food'])->name('food');
-    Route::get('/medicamentos', [InventoryController::class, 'medications'])->name('medications');
-    Route::get('/higiene', [InventoryController::class, 'hygiene'])->name('hygiene');
-    Route::get('/limpeza', [InventoryController::class, 'cleaning'])->name('cleaning');
+        // Cadastro, Edição e Exclusão do Insumo
+        Route::post('/', [InventoryController::class, 'store'])->name('store');
+        Route::put('/{inventory}', [InventoryController::class, 'update'])->name('update');
+        Route::delete('/{inventory}', [InventoryController::class, 'destroy'])->name('destroy');
 
-    // Cadastro, Edição e Exclusão do Insumo
-    Route::post('/', [InventoryController::class, 'store'])->name('store');
-    Route::put('/{inventory}', [InventoryController::class, 'update'])->name('update');
-    Route::delete('/{inventory}', [InventoryController::class, 'destroy'])->name('destroy');
-
-    // Rota Extrato (Entrada e Saída)
-    Route::post('/{inventory}/movimentacao', [InventoryController::class, 'storeMovement'])->name('movements.store');
-});
+        // Rota Extrato (Entrada e Saída)
+        Route::post('/{inventory}/movimentacao', [InventoryController::class, 'storeMovement'])->name('movements.store');
+    });
 
     // 📩 Módulo 5: Solicitações de Adoção
     Route::prefix('adoptions/requests')->name('adoptions.requests.')->group(function () {
@@ -154,8 +163,6 @@ Route::prefix('{slug}')->middleware(['web', 'resolve.tenant'])->group(function (
 // ==============================================================================
 Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('superadmin.')->group(function () {
     
-    // 👇 Mudamos apenas esta linha para chamar o Controller que criamos!
-    Route::get('/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Aqui entrarão as rotas de Leads e CRUD de ONGs depois...
 });
