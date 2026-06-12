@@ -109,13 +109,13 @@ export default function AuthenticatedLayout({ user, header, children }) {
                 <button
                     onClick={() => setInsumosOpen((o) => !o)}
                     className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
-                        isActive('/inventory') || isActive('/insumos')
+                        isActive('/insumos') // Pega qualquer coisa que comece com /insumos
                             ? 'bg-gray-900 text-white'
                             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                 >
                     <span className="flex items-center gap-3">
-                        <span className={isActive('/inventory') || isActive('/insumos') ? 'text-white' : 'text-gray-400'}>
+                        <span className={isActive('/insumos') ? 'text-white' : 'text-gray-400'}>
                             <IconInsumos />
                         </span>
                         Insumos
@@ -125,13 +125,34 @@ export default function AuthenticatedLayout({ user, header, children }) {
 
                 {insumosOpen && (
                     <div className="ml-8 mt-1 space-y-0.5">
-                        <NavLink href="/inventory/food" icon={null} label="Ração" active={isActive('/inventory/food')} />
-                        <NavLink href="/inventory/medications" icon={null} label="Medicamentos" active={isActive('/inventory/medications')} />
-                        <NavLink href="/inventory/hygiene" icon={null} label="Higiene" active={isActive('/inventory/hygiene')} />
-                        <NavLink href="/inventory/cleaning" icon={null} label="Limpeza" active={isActive('/inventory/cleaning')} />
+                        <NavLink 
+                            href={route('inventory.food')} 
+                            icon={null} 
+                            label="Ração" 
+                            active={route().current('inventory.food')} 
+                        />
+                        <NavLink 
+                            href={route('inventory.medications')} 
+                            icon={null} 
+                            label="Medicamentos" 
+                            active={route().current('inventory.medications')} 
+                        />
+                        <NavLink 
+                            href={route('inventory.hygiene')} 
+                            icon={null} 
+                            label="Higiene" 
+                            active={route().current('inventory.hygiene')} 
+                        />
+                        <NavLink 
+                            href={route('inventory.cleaning')} 
+                            icon={null} 
+                            label="Limpeza" 
+                            active={route().current('inventory.cleaning')} 
+                        />
                     </div>
                 )}
             </div>
+
             <NavLink href="/volunteers" icon={<IconVoluntarios />} label="Voluntários" active={isActive('/volunteers')} />
         </>
     );

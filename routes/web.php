@@ -72,12 +72,22 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     });
 
     // 📦 Módulo 4: Insumos (Inventory)
-    Route::prefix('inventory')->name('inventory.')->group(function () {
-        Route::get('/food', [InventoryController::class, 'food'])->name('food');
-        Route::get('/medications', [InventoryController::class, 'medications'])->name('medications');
-        Route::get('/hygiene', [InventoryController::class, 'hygiene'])->name('hygiene');
-        Route::get('/cleaning', [InventoryController::class, 'cleaning'])->name('cleaning');
-    });
+
+Route::prefix('insumos')->name('inventory.')->group(function () {
+    // As 4 telas separadas
+    Route::get('/racao', [InventoryController::class, 'food'])->name('food');
+    Route::get('/medicamentos', [InventoryController::class, 'medications'])->name('medications');
+    Route::get('/higiene', [InventoryController::class, 'hygiene'])->name('hygiene');
+    Route::get('/limpeza', [InventoryController::class, 'cleaning'])->name('cleaning');
+
+    // Cadastro, Edição e Exclusão do Insumo
+    Route::post('/', [InventoryController::class, 'store'])->name('store');
+    Route::put('/{inventory}', [InventoryController::class, 'update'])->name('update');
+    Route::delete('/{inventory}', [InventoryController::class, 'destroy'])->name('destroy');
+
+    // Rota Extrato (Entrada e Saída)
+    Route::post('/{inventory}/movimentacao', [InventoryController::class, 'storeMovement'])->name('movements.store');
+});
 
     // 📩 Módulo 5: Solicitações de Adoção
     Route::prefix('adoptions/requests')->name('adoptions.requests.')->group(function () {
