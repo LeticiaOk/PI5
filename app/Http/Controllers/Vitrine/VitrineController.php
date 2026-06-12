@@ -9,10 +9,23 @@ use Illuminate\Http\Request;
 
 class VitrineController extends Controller
 {
-    public function home(Request $request, $slug)
-    {
-        return Inertia::render('Vitrine/Home', ['slug' => $slug]);
-    }
+ public function home(Request $request, $slug)
+{
+    $tenantId = app('currentTenant');
+    $ong = \App\Models\Ong::with('settings')->findOrFail($tenantId);
+
+    // 🤖 INTELIGÊNCIA: O sistema conta sozinho os animais disponíveis para adoção
+    $availableCount = \App\Models\Animal::where('ong_id', $tenantId)
+                        ->where('status', 'available')
+                        ->count();
+
+    return Inertia::render('Vitrine/Home', [
+        'slug' => $slug,
+        'ong' => $ong,
+        'settings' => $ong->settings ?? [],
+        'availableCount' => $availableCount // Enviamos o dado real!
+    ]);
+}
 
  public function adote(Request $request, $slug)
     {

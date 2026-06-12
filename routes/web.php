@@ -60,7 +60,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         return Inertia::render('Dashboard');
     })->name('tenant.dashboard');
 
-
+    Route::get('/painel/configuracoes', [App\Http\Controllers\Tenant\OngSettingController::class, 'edit'])->name('tenant.settings.edit');
+    Route::put('/painel/configuracoes', [App\Http\Controllers\Tenant\OngSettingController::class, 'update'])->name('tenant.settings.update');
     Route::get('/breeds/{species}', [BreedController::class, 'bySpecies'])->name('breeds.by-species');
     
     // 🐾 Módulo 1: Prontuários de Animais
