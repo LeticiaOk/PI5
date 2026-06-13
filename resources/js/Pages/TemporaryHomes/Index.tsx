@@ -9,6 +9,9 @@ import { temporaryHomeSchema, TemporaryHomeFormData } from '@/lib/schemas/tempor
 import { Animal } from '@/types/animal';
 import { z } from 'zod';
 
+// 🛡️ Importando a constante global de Estados que você criou
+import { ESTADOS_BR } from '@/lib/constants/address';
+
 // ── Tipagens ──────────────────────────────────────────────────────────────
 interface User {
     id: string;
@@ -101,12 +104,12 @@ const TemporaryHomeForm = ({ initialData, onSuccess, onCancel }: TemporaryHomeFo
     const isEditing = !!initialData;
     
     const {
-    register,
-    handleSubmit,
-    setValue,
-    setError,
-    formState: { errors, isSubmitting }
-} = useForm<z.infer<typeof temporaryHomeSchema>>({
+        register,
+        handleSubmit,
+        setValue,
+        setError,
+        formState: { errors, isSubmitting }
+    } = useForm<z.infer<typeof temporaryHomeSchema>>({
         resolver: zodResolver(temporaryHomeSchema),
         mode: 'onBlur',
         defaultValues: {
@@ -174,34 +177,37 @@ const TemporaryHomeForm = ({ initialData, onSuccess, onCancel }: TemporaryHomeFo
                 <div className="col-span-1 sm:col-span-2">
                     <InputGroup label="Nome do Responsável / Família" {...register('name')} error={errors.name?.message} />
                 </div>
-                <InputGroup
-                    label="Telefone / WhatsApp"
-                    placeholder="(11) 99999-9999"
-                    maxLength={15}
-                    {...register('phone', {
-                        onChange: (e) => {
-                            let v = e.target.value.replace(/\D/g, '');
-
-                            v = v.substring(0, 11);
-
-                            if (v.length > 10) {
-                                v = v.replace(
-                                    /^(\d{2})(\d{5})(\d{0,4}).*/,
-                                    '($1) $2-$3'
-                                );
-                            } else {
-                                v = v.replace(
-                                    /^(\d{2})(\d{4})(\d{0,4}).*/,
-                                    '($1) $2-$3'
-                                );
+                
+                {/* 🛡️ Telefone formatado ao vivo integrado ao React Hook Form */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Telefone / WhatsApp</label>
+                    <input
+                        type="text"
+                        placeholder="(11) 99999-9999"
+                        maxLength={15}
+                        {...register('phone', {
+                            onChange: (e) => {
+                                let v = e.target.value.replace(/\D/g, '');
+                                v = v.substring(0, 11);
+                                if (v.length > 10) {
+                                    v = v.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+                                } else if (v.length > 6) {
+                                    v = v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+                                } else if (v.length > 2) {
+                                    v = v.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+                                } else if (v.length > 0) {
+                                    v = v.replace(/^(\d{0,2})/, '($1');
+                                }
+                                e.target.value = v;
+                                setValue('phone', v, { shouldValidate: true });
                             }
+                        })}
+                        className={`w-full rounded-lg text-sm shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 bg-white text-gray-900 ${errors.phone ? 'border-red-500 focus:ring-red-500' : ''}`}
+                    />
+                    {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>}
+                </div>
 
-                            e.target.value = v;
-                        }
-                    })}
-                    error={errors.phone?.message}
-                />
-                                <InputGroup
+                <InputGroup
                     label="Capacidade Máxima (Animais)"
                     type="number"
                     min={1}
@@ -225,22 +231,42 @@ const TemporaryHomeForm = ({ initialData, onSuccess, onCancel }: TemporaryHomeFo
                         onChange: (e) => { 
                              let v = e.target.value.replace(/\D/g, ''); 
                              if(v.length > 5) v = v.replace(/^(\d{5})(\d)/, '$1-$2');
-                             e.target.value = v; 
+                             e.target.value = v;
+                             setValue('zip_code', v, { shouldValidate: true });
                              if(v.replace(/\D/g, '').length === 8) fetchCep(v);
                         },
                         onBlur: (e) => { if (e.target.value.replace(/\D/g, '').length === 8) fetchCep(e.target.value); }
                     })} error={errors.zip_code?.message} />
                     {loadingCep && <div className="absolute right-3 top-8"><span className="animate-ping h-3 w-3 rounded-full bg-indigo-500"></span></div>}
                 </div>
+                
                 <InputGroup label="Logradouro (Rua/Av)" {...register('street')} error={errors.street?.message} disabled={loadingCep} />
                 <InputGroup id="address_number" label="Número" {...register('number')} error={errors.number?.message} />
                 <InputGroup label="Bairro" {...register('neighborhood')} error={errors.neighborhood?.message} disabled={loadingCep} />
                 <InputGroup label="Cidade" {...register('city')} error={errors.city?.message} disabled={loadingCep} />
-                <InputGroup label="UF" {...register('state')} error={errors.state?.message} disabled={loadingCep} maxLength={2} />
+                
+                {/* 🛡️ Dropdown de UF consumindo do constants */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">UF (Estado)</label>
+                    <select
+                        {...register('state')}
+                        disabled={loadingCep}
+                        className={`w-full rounded-lg text-sm shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 
+                        ${loadingCep ? 'bg-gray-100 text-gray-500' : 'bg-white text-gray-900'}
+                        ${errors.state ? 'border-red-500' : ''}`}
+                    >
+                        <option value="">Selecione...</option>
+                        {ESTADOS_BR.map(uf => (
+                            <option key={uf} value={uf}>{uf}</option>
+                        ))}
+                    </select>
+                    {errors.state && <p className="mt-1 text-xs text-red-600">{errors.state.message}</p>}
+                </div>
             </div>
+            
             <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
-                <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">{isSubmitting ? 'Salvando...' : 'Confirmar'}</button>
+                <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">Cancelar</button>
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors">{isSubmitting ? 'Salvando...' : 'Confirmar'}</button>
             </div>
         </form>
     );
@@ -255,11 +281,19 @@ export default function Index({ auth, temporaryHomes }: Props) {
     const homesArray = Array.isArray(temporaryHomes) ? temporaryHomes : temporaryHomes.data;
 
     return (
-        <AuthenticatedLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Lares Temporários</h2>}>
+        <AuthenticatedLayout 
+            user={auth.user} 
+            header={
+                <h2 className="text-sm font-medium text-gray-500 flex items-center">
+                    Rede de Apoio <span className="mx-2 text-gray-300">/</span> <span className="text-gray-900 font-semibold">Lares Temporários</span>
+                </h2>
+            }
+        >
             <Head title="Lares Temporários" />
 
             <DataBrowser 
-                title="Rede de Apoio"
+                title="Rede de Lares Temporários"
+                subtitle="Lares disponíveis para acolhimento temporário de animais."
                 data={homesArray}
                 columns={[
                     { label: 'RESPONSÁVEL / FAMÍLIA', key: 'name', render: (val, home) => (
@@ -271,8 +305,8 @@ export default function Index({ auth, temporaryHomes }: Props) {
                     { label: 'LOCALIDADE', key: 'address', render: (_, home) => <span className="text-gray-600">{home.address?.city} - {home.address?.state}</span>},
                     { label: 'AÇÕES', key: 'actions', render: (_, home) => (
                         <div className="flex items-center gap-2">
-                            <button onClick={() => setModalConfig({ isOpen: true, data: home })} className="p-2 bg-gray-100 text-gray-600 hover:bg-indigo-100 rounded-lg"><EditIcon /></button>
-                            <Link href={route('temporary-homes.destroy', home.id)} method="delete" as="button" onClick={(e) => { if (!confirm(`Tem certeza que deseja excluir o lar de ${home.name}?`)) e.preventDefault(); }} className="p-2 bg-gray-100 text-gray-600 hover:bg-red-100 rounded-lg"><TrashIcon /></Link>
+                            <button onClick={() => setModalConfig({ isOpen: true, data: home })} className="p-2 bg-gray-100 text-gray-600 hover:bg-indigo-100 rounded-lg transition-colors"><EditIcon /></button>
+                            <Link href={route('temporary-homes.destroy', home.id)} method="delete" as="button" onClick={(e) => { if (!confirm(`Tem certeza que deseja excluir o lar de ${home.name}?`)) e.preventDefault(); }} className="p-2 bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors"><TrashIcon /></Link>
                         </div>
                     )}
                 ]}
@@ -282,11 +316,11 @@ export default function Index({ auth, temporaryHomes }: Props) {
                             <div className="flex gap-3"><div className="mt-1"><HomeIcon /></div>
                                 <div><h3 className="font-bold text-gray-900">{home.name}</h3><p className="text-sm text-gray-500">{formatPhone(home.phone)}</p></div>
                             </div>
-                            <button onClick={() => setModalConfig({ isOpen: true, data: home })}><EditIcon /></button>
+                            <button onClick={() => setModalConfig({ isOpen: true, data: home })} className="text-indigo-600 bg-indigo-50 p-1.5 rounded-lg"><EditIcon /></button>
                         </div>
                         <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 text-sm">
                             <span className="text-gray-600">📍 {home.address?.city}/{home.address?.state}</span>
-                            <span className="font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Cap: {home.max_capacity}</span>
+                            <span className="font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Cap: {home.animals?.length || 0}/{home.max_capacity}</span>
                         </div>
                     </div>
                 )}

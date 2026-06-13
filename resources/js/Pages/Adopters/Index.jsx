@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import DataBrowser from '@/Components/DataBrowser';
 import BaseModal from '@/Components/Modals/BaseModal';
+import { ESTADOS_BR } from '@/lib/constants/address';
 
 // ── Helpers de Formatação ─────────────────────────────────────────────────────
 const formatCPF = (cpf) => {
@@ -15,7 +16,6 @@ const formatPhone = (phone) => {
     return phone.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
 };
 
-// 🛡️ A FUNÇÃO DE DATA QUE FALTAVA AQUI!
 const formatDate = (d) => {
     return d ? new Date(d).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '—';
 };
@@ -35,17 +35,17 @@ const HistoryIcon = () => (
 );
 
 const InputGroup = ({ label, id, type = "text", value, onChange, error, onBlur, disabled, maxLength, placeholder }) => (
-        <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-            <input
-                id={id} type={type} value={value} onChange={onChange} onBlur={onBlur} disabled={disabled} maxLength={maxLength} placeholder={placeholder}
-                className={`w-full rounded-lg text-sm shadow-sm focus:ring-indigo-500 focus:border-indigo-500 
-                ${disabled ? 'bg-gray-100 text-gray-500' : 'bg-white text-gray-900'}
-                ${error ? 'border-red-500' : 'border-gray-300'}`}
-            />
-            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-        </div>
-    );
+    <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+        <input
+            id={id} type={type} value={value} onChange={onChange} onBlur={onBlur} disabled={disabled} maxLength={maxLength} placeholder={placeholder}
+            className={`w-full rounded-lg text-sm shadow-sm focus:ring-indigo-500 focus:border-indigo-500 
+            ${disabled ? 'bg-gray-100 text-gray-500' : 'bg-white text-gray-900'}
+            ${error ? 'border-red-500' : 'border-gray-300'}`}
+        />
+        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+    </div>
+);
 
 // ── 🚀 FORMULÁRIO ESPECIALIZADO DE ADOTANTE (Com ViaCEP) ────────────────────
 const AdopterForm = ({ initialData, onSuccess, onCancel }) => {
@@ -72,23 +72,25 @@ const AdopterForm = ({ initialData, onSuccess, onCancel }) => {
 
         setLoadingCep(true);
         try {
-            const response = await fetch(`/api/cep/${cep}`);
+            // Usando direto a API do ViaCEP para garantir estabilidade
+            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
             const result = await response.json();
 
             if (!result.erro) {
-                setData(prevData => ({
-                    ...prevData,
-                    street: result.logradouro,
-                    neighborhood: result.bairro,
-                    city: result.localidade,
-                    state: result.uf
+                // 🛡️ A mágica no Inertia para atualizar vários campos de uma vez!
+                setData(currentData => ({
+                    ...currentData,
+                    street: result.logradouro || '',
+                    neighborhood: result.bairro || '',
+                    city: result.localidade || '',
+                    state: result.uf || ''
                 }));
                 document.getElementById('address_number')?.focus();
             } else {
                 alert('CEP não encontrado.');
             }
         } catch (error) {
-            console.error("Erro ao consultar CEP:", error);
+            alert("Erro ao consultar CEP. Verifique sua internet.");
         } finally {
             setLoadingCep(false);
         }
@@ -103,15 +105,40 @@ const AdopterForm = ({ initialData, onSuccess, onCancel }) => {
         }
     };
 
-    
-
     return (
         <form onSubmit={handleSubmit} className="p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* 👤 Dados Pessoais */}
                 <InputGroup label="Nome Completo" value={data.name} onChange={e => setData('name', e.target.value)} error={errors.name} />
                 <InputGroup label="CPF (Apenas números)" value={data.cpf} onChange={e => setData('cpf', e.target.value.replace(/\D/g, ''))} error={errors.cpf} maxLength="11" />
-                <InputGroup label="Telefone/WhatsApp" value={data.phone} onChange={e => setData('phone', e.target.value)} error={errors.phone} />
+                
+                {/* 🛡️ Telefone com formatação ao vivo */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Telefone/WhatsApp</label>
+                    <input
+                        type="text"
+                        placeholder="(11) 99999-9999"
+                        maxLength="15"
+                        value={data.phone}
+                        onChange={(e) => {
+                            let v = e.target.value.replace(/\D/g, '');
+                            v = v.substring(0, 11);
+                            if (v.length > 10) {
+                                v = v.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+                            } else if (v.length > 6) {
+                                v = v.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+                            } else if (v.length > 2) {
+                                v = v.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+                            } else if (v.length > 0) {
+                                v = v.replace(/^(\d{0,2})/, '($1');
+                            }
+                            setData('phone', v);
+                        }}
+                        className={`w-full rounded-lg text-sm shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 bg-white text-gray-900 ${errors.phone ? 'border-red-500' : ''}`}
+                    />
+                    {errors.phone && <p className="mt-1 text-xs text-red-600">{errors.phone}</p>}
+                </div>
+
                 <InputGroup label="E-mail" type="email" value={data.email} onChange={e => setData('email', e.target.value)} error={errors.email} />
 
                 {/* 📍 Endereço */}
@@ -128,16 +155,12 @@ const AdopterForm = ({ initialData, onSuccess, onCancel }) => {
                         value={data.zip_code}
                         onChange={(e) => {
                             let val = e.target.value.replace(/\D/g, ''); 
-                            if (val.length > 5) {
-                                val = val.replace(/^(\d{5})(\d)/, '$1-$2'); 
-                            }
+                            if (val.length > 5) val = val.replace(/^(\d{5})(\d)/, '$1-$2'); 
                             setData('zip_code', val);
                             if (val.replace(/\D/g, '').length === 8) fetchCep(val);
                         }}
                         onBlur={(e) => {
-                            if (e.target.value.replace(/\D/g, '').length === 8) {
-                                fetchCep(e.target.value);
-                            }
+                            if (e.target.value.replace(/\D/g, '').length === 8) fetchCep(e.target.value);
                         }}
                     />
                     {loadingCep && (
@@ -155,7 +178,25 @@ const AdopterForm = ({ initialData, onSuccess, onCancel }) => {
                 <InputGroup id="address_number" label="Número" value={data.number} onChange={e => setData('number', e.target.value)} error={errors.number} />
                 <InputGroup label="Bairro" value={data.neighborhood} onChange={e => setData('neighborhood', e.target.value)} error={errors.neighborhood} disabled={loadingCep} />
                 <InputGroup label="Cidade" value={data.city} onChange={e => setData('city', e.target.value)} error={errors.city} disabled={loadingCep} />
-                <InputGroup label="UF" value={data.state} onChange={e => setData('state', e.target.value)} error={errors.state} disabled={loadingCep} maxLength="2" />
+                
+                {/* 🛡️ Dropdown de UF Inteligente */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">UF (Estado)</label>
+                    <select
+                        value={data.state}
+                        onChange={e => setData('state', e.target.value)}
+                        disabled={loadingCep}
+                        className={`w-full rounded-lg text-sm shadow-sm focus:ring-indigo-500 focus:border-indigo-500 border-gray-300 
+                        ${loadingCep ? 'bg-gray-100 text-gray-500' : 'bg-white text-gray-900'}
+                        ${errors.state ? 'border-red-500' : ''}`}
+                    >
+                        <option value="">Selecione...</option>
+                        {ESTADOS_BR.map(uf => (
+                            <option key={uf} value={uf}>{uf}</option>
+                        ))}
+                    </select>
+                    {errors.state && <p className="mt-1 text-xs text-red-600">{errors.state}</p>}
+                </div>
             </div>
 
             <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
@@ -238,35 +279,41 @@ export default function Index({ auth, adopters = [] }) {
                     <p className="text-sm text-gray-500">{formatCPF(adopter.cpf)}</p>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={() => setModalConfig({ isOpen: true, data: adopter })} className="text-indigo-600 p-1"><EditIcon /></button>
+                    <button onClick={() => setViewModal({ isOpen: true, data: adopter })} className="text-amber-600 bg-amber-50 p-1.5 rounded-lg"><HistoryIcon /></button>
+                    <button onClick={() => setModalConfig({ isOpen: true, data: adopter })} className="text-indigo-600 bg-indigo-50 p-1.5 rounded-lg"><EditIcon /></button>
                 </div>
             </div>
-            <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                <p>📍 {adopter.address?.city} - {adopter.address?.state}</p>
-                <p>📞 {formatPhone(adopter.phone)}</p>
+            <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100 flex flex-col gap-1.5">
+                <p className="flex items-center gap-2">📍 {adopter.address?.city} - {adopter.address?.state}</p>
+                <p className="flex items-center gap-2">📞 {formatPhone(adopter.phone)}</p>
             </div>
         </div>
     );
 
     return (
-        <AuthenticatedLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Gestão de Adotantes</h2>}>
-            <Head title="Adotantes" />
+        <AuthenticatedLayout 
+            user={auth.user} 
+            header={
+                <h2 className="text-sm font-medium text-gray-500 flex items-center">
+                    Adoções <span className="mx-2 text-gray-300">/</span> <span className="text-gray-900 font-semibold">Adotantes</span>
+                </h2>
+            }
+        >
+            <Head title="Gestão de Adotantes" />
 
             <DataBrowser 
-    title="Adotantes Cadastrados"
-    
-    // 🛡️ A CORREÇÃO ESTÁ NESTA LINHA ABAIXO:
-    data={adopters.data || adopters} 
-    
-    columns={tableColumns}
-    renderMobileCard={renderMobileCard}
-    onAddClick={() => setModalConfig({ isOpen: true, data: null })}
-    addLabel="Novo Adotante"
-    searchPlaceholder="Buscar por nome, CPF ou cidade..."
-    searchFn={searchFunction}
-/>
+                title="Adotantes Cadastrados"
+                subtitle="Banco de dados de pessoas interessadas e aprovadas para adoção."
+                data={adopters.data || adopters} 
+                columns={tableColumns}
+                renderMobileCard={renderMobileCard}
+                onAddClick={() => setModalConfig({ isOpen: true, data: null })}
+                addLabel="Novo Adotante"
+                searchPlaceholder="Buscar por nome, CPF ou cidade..."
+                searchFn={searchFunction}
+            />
 
-            {/* 🛡️ 1. MODAL DE CADASTRO E EDIÇÃO (Aquele que havia sumido) */}
+            {/* 🛡️ 1. MODAL DE CADASTRO E EDIÇÃO */}
             <BaseModal 
                 isOpen={modalConfig.isOpen} 
                 onClose={closeModal} 
@@ -288,42 +335,42 @@ export default function Index({ auth, adopters = [] }) {
                 title={`Dossiê: ${viewModal.data?.name}`}
             >
                 {viewModal.data && (
-                    <div className="p-6 space-y-6">
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                            <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Informações de Base</h4>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="p-6 space-y-6 bg-gray-50/50">
+                        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 border-b pb-2">Informações Base</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                 <p><strong>CPF:</strong> {formatCPF(viewModal.data.cpf)}</p>
                                 <p><strong>Telefone:</strong> {formatPhone(viewModal.data.phone)}</p>
-                                <p className="col-span-2"><strong>Endereço:</strong> {viewModal.data.address?.street}, {viewModal.data.address?.number} - {viewModal.data.address?.city}/{viewModal.data.address?.state}</p>
+                                <p className="col-span-1 sm:col-span-2"><strong>Endereço:</strong> {viewModal.data.address?.street}, {viewModal.data.address?.number} - {viewModal.data.address?.city}/{viewModal.data.address?.state}</p>
                             </div>
                         </div>
 
                         <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                            <h4 className="text-xs font-bold text-amber-700 uppercase mb-3 flex items-center gap-2">
+                            <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-3 flex items-center gap-2 border-b border-amber-100/50 pb-2">
                                 ⚠️ Histórico de Adoções / Devoluções
                             </h4>
                             
                             {viewModal.data.adoptions?.length > 0 ? (
                                 <div className="space-y-3">
                                     {viewModal.data.adoptions.map(adoption => (
-                                        <div key={adoption.id} className={`p-3 rounded-lg border ${adoption.returned_at ? 'bg-red-50 border-red-100' : 'bg-white border-gray-100'}`}>
+                                        <div key={adoption.id} className={`p-3 rounded-lg border ${adoption.returned_at ? 'bg-red-50 border-red-100' : 'bg-white border-gray-100 shadow-sm'}`}>
                                             <div className="flex justify-between items-start mb-1">
-                                                <span className="text-xs font-bold text-gray-700">
-                                                    🐾 {adoption.animal?.name}
+                                                <span className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                                                    <span className="text-lg leading-none">🐾</span> {adoption.animal?.name}
                                                 </span>
-                                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${adoption.returned_at ? 'bg-red-200 text-red-800' : 'bg-green-100 text-green-700'}`}>
+                                                <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${adoption.returned_at ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-green-100 text-green-700 border border-green-200'}`}>
                                                     {adoption.returned_at ? 'Devolvido' : 'Adotado'}
                                                 </span>
                                             </div>
-                                            <p className="text-[11px] text-gray-500">
+                                            <p className="text-xs text-gray-500 mt-1">
                                                 {adoption.returned_at 
                                                     ? `Devolução em: ${formatDate(adoption.returned_at)}` 
                                                     : `Adotado em: ${formatDate(adoption.adoption_date)}`}
                                             </p>
                                             {adoption.return_reason && (
-                                                <p className="mt-2 text-[11px] italic text-red-700 bg-red-100/50 p-2 rounded">
-                                                    <strong>Motivo:</strong> {adoption.return_reason}
-                                                </p>
+                                                <div className="mt-2 text-xs italic text-red-700 bg-red-100/50 p-2 rounded-lg border border-red-100/50">
+                                                    <strong>Motivo da devolução:</strong> {adoption.return_reason}
+                                                </div>
                                             )}
                                         </div>
                                     ))}
@@ -331,6 +378,11 @@ export default function Index({ auth, adopters = [] }) {
                             ) : (
                                 <p className="text-xs text-amber-600 italic">Nenhum histórico de adoção registrado para este perfil.</p>
                             )}
+                        </div>
+                        <div className="flex justify-end pt-2">
+                            <button onClick={() => setViewModal({ isOpen: false, data: null })} className="px-5 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-800 transition-colors w-full sm:w-auto">
+                                Fechar
+                            </button>
                         </div>
                     </div>
                 )}
