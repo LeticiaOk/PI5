@@ -22,14 +22,15 @@ const TrendingUpIcon = () => <svg className="w-5 h-5" fill="none" viewBox="0 0 2
 const TrendingDownIcon = () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" /></svg>;
 const ActivityIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>;
 const InfoIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+
 // ── Helper de Status ───────────────────────────────────────────────────────
 const StatusBadge = ({ quantity, minQuantity }) => {
     const qty = parseFloat(quantity);
     const min = parseFloat(minQuantity);
 
-    if (qty <= 0) return <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">Esgotado</span>;
-    if (qty <= min) return <span className="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800">Estoque Baixo</span>;
-    return <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Em Estoque</span>;
+    if (qty <= 0) return <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-red-100 text-red-700 whitespace-nowrap">Esgotado</span>;
+    if (qty <= min) return <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-yellow-100 text-yellow-800 whitespace-nowrap">Estoque Baixo</span>;
+    return <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold bg-green-100 text-green-700 whitespace-nowrap">Em Estoque</span>;
 };
 
 // ── COMPONENTE MESTRE ──────────────────────────────────────────────────────
@@ -93,11 +94,9 @@ export default function InventoryManager({ title, category, data = [], customFie
 
     // Filtro Combinado: Busca de Texto + Dropdown de Status
     const filteredData = data.filter(item => {
-        // 1. Checa a busca por texto
         const matchSearch = item.name.toLowerCase().includes(search.toLowerCase()) || 
                             (item.provider && item.provider.toLowerCase().includes(search.toLowerCase()));
         
-        // 2. Checa o status do estoque
         let matchStatus = true;
         const qty = parseFloat(item.quantity);
         const min = parseFloat(item.min_quantity);
@@ -110,7 +109,6 @@ export default function InventoryManager({ title, category, data = [], customFie
             matchStatus = qty > min;
         }
 
-        // Só mostra o item se ele passar nos dois filtros
         return matchSearch && matchStatus;
     });
 
@@ -233,17 +231,17 @@ export default function InventoryManager({ title, category, data = [], customFie
     };
 
     return (
-        <div className="py-8 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-                <p className="text-gray-500 mt-1">Gerencie o estoque de insumos da ONG</p>
+        <div className="py-6 sm:py-8 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-6 sm:mb-8">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title}</h1>
+                <p className="text-sm sm:text-base text-gray-500 mt-1">Gerencie o estoque de insumos da ONG</p>
             </div>
 
             {/* Toolbar com Busca e Filtros */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 
                 {/* Grupo de Filtros (Busca + Dropdown) */}
-                <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[250px] max-w-2xl">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1 min-w-[250px] max-w-2xl">
                     <div className="relative flex-1 min-w-[200px]">
                         <input
                             type="text"
@@ -267,20 +265,18 @@ export default function InventoryManager({ title, category, data = [], customFie
                 </div>
 
                 {/* Botões de Ação */}
-                <div className="flex items-center gap-3">
-                    <button onClick={() => setGlobalModalOpen(true)} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-bold rounded-lg transition-colors shadow-sm flex items-center gap-2">
+                <div className="flex sm:flex-row flex-col items-stretch gap-3">
+                    <button onClick={() => setGlobalModalOpen(true)} className="justify-center px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-bold rounded-lg transition-colors shadow-sm flex items-center gap-2">
                         <ActivityIcon /> Histórico Geral
                     </button>
-                    <button onClick={() => openItemModal()} className="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+                    <button onClick={() => openItemModal()} className="justify-center px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
                         + Adicionar insumo
                     </button>
                 </div>
             </div>
 
-            {/* Tabela de Insumos */}
-            {/* 👇 1. overflow-x-auto no lugar de overflow-hidden para não cortar a tela */}
-            <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto shadow-sm">
-                {/* 👇 2. Removido o whitespace-nowrap geral da table */}
+            {/* 👇 VISÃO DESKTOP: Tabela Tradicional (Oculta no Mobile) */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto shadow-sm">
                 <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 uppercase text-xs font-bold text-gray-500 tracking-wider whitespace-nowrap">
                         <tr>
@@ -298,7 +294,6 @@ export default function InventoryManager({ title, category, data = [], customFie
                         ) : (
                             filteredData.map((item) => (
                                 <tr key={item.id} className="hover:bg-gray-50">
-                                    {/* 👇 3. Adicionado min-w e whitespace-normal para o nome quebrar linha bonito */}
                                     <td className="px-6 py-4 font-bold text-gray-900 min-w-[280px] max-w-md whitespace-normal leading-relaxed">
                                         {item.name}
                                     </td>
@@ -307,7 +302,6 @@ export default function InventoryManager({ title, category, data = [], customFie
                                     <td className="px-6 py-4 text-gray-500 whitespace-nowrap">{item.provider || '—'}</td>
                                     <td className="px-6 py-4 whitespace-nowrap"><StatusBadge quantity={item.quantity} minQuantity={item.min_quantity} /></td>
                                     
-                                    {/* 👇 4. whitespace-nowrap nos botões para eles nunca se esmagarem */}
                                     <td className="px-6 py-4 text-right whitespace-nowrap">
                                         <div className="flex items-center justify-end gap-2">
                                             <button 
@@ -339,7 +333,70 @@ export default function InventoryManager({ title, category, data = [], customFie
                     </tbody>
                 </table>
             </div>
-           
+
+            {/* 👇 VISÃO MOBILE: Cards Responsivos (Ocultos no Desktop) */}
+            <div className="block md:hidden space-y-4">
+                {filteredData.length === 0 ? (
+                    <div className="p-6 text-center text-gray-400 bg-white rounded-xl border border-gray-200">
+                        Nenhum insumo encontrado.
+                    </div>
+                ) : (
+                    filteredData.map((item) => (
+                        <div key={item.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-4">
+                            
+                            {/* Nome e Status */}
+                            <div className="flex justify-between items-start gap-3">
+                                <h3 className="font-bold text-gray-900 leading-tight text-sm">{item.name}</h3>
+                                <StatusBadge quantity={item.quantity} minQuantity={item.min_quantity} />
+                            </div>
+
+                            {/* Detalhes do Produto */}
+                            <div className="grid grid-cols-2 gap-3 text-sm bg-gray-50 p-3 rounded-lg">
+                                <div>
+                                    <span className="block text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Em Estoque</span>
+                                    <span className="font-semibold text-gray-900">{item.quantity} {item.unit}</span>
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Alerta Mínimo</span>
+                                    <span className="text-gray-700 font-medium">{item.min_quantity} {item.unit}</span>
+                                </div>
+                                <div className="col-span-2">
+                                    <span className="block text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Fornecedor / Marca</span>
+                                    <span className="text-gray-700 font-medium">{item.provider || 'Não informado'}</span>
+                                </div>
+                            </div>
+
+                            {/* Botões de Ação */}
+                            <div className="pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
+                                <button
+                                    onClick={() => setMovementsModal({ isOpen: true, item })}
+                                    className="flex-1 inline-flex justify-center items-center gap-1.5 px-3 py-2 text-xs font-bold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                                >
+                                    <ActivityIcon /> Movimentações
+                                </button>
+                                
+                                <div className="flex items-center gap-1 shrink-0">
+                                    {Object.keys(item.details || {}).length > 0 && (
+                                        <button onClick={() => setDetailsModal({ isOpen: true, item })} className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg">
+                                            <InfoIcon />
+                                        </button>
+                                    )}
+                                    <button onClick={() => openItemModal(item)} className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg">
+                                        <EditIcon />
+                                    </button>
+                                    <Link
+                                        href={route('inventory.destroy', item.id)} method="delete" as="button"
+                                        onClick={(e) => !confirm(`Excluir ${item.name}?`) && e.preventDefault()}
+                                        className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg"
+                                    >
+                                        <TrashIcon />
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
 
             {/* ========================================== */}
             {/* MODAL 1: CADASTRAR / EDITAR INSUMO         */}
@@ -460,7 +517,7 @@ export default function InventoryManager({ title, category, data = [], customFie
             <BaseModal isOpen={movementsModal.isOpen} onClose={() => setMovementsModal({ isOpen: false, item: null })} title={`Movimentações: ${movementsModal.item?.name}`}>
                 <div className="p-6 bg-gray-50/50">
                     <div className="mb-6">
-                        <button onClick={() => openRegisterModal(movementsModal.item)} className="px-4 py-2 bg-indigo-500 text-white text-sm font-bold rounded-lg hover:bg-indigo-600 shadow-sm">
+                        <button onClick={() => openRegisterModal(movementsModal.item)} className="px-4 py-2 bg-indigo-500 text-white text-sm font-bold rounded-lg hover:bg-indigo-600 shadow-sm w-full sm:w-auto">
                             + Registrar movimentação
                         </button>
                     </div>
@@ -477,14 +534,14 @@ export default function InventoryManager({ title, category, data = [], customFie
                                             {isEntrada ? <TrendingUpIcon /> : <TrendingDownIcon />}
                                         </div>
                                         <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
+                                            <div className="flex flex-wrap items-center gap-2 mb-1">
                                                 <h4 className="font-bold text-gray-900">{movementsModal.item.name}</h4>
                                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${isEntrada ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                                     {isEntrada ? 'Entrada' : 'Saída'}
                                                 </span>
                                             </div>
                                             <p className="text-sm text-gray-600 mb-2">{mov.description || (isEntrada ? 'Ajuste manual (Entrada)' : 'Ajuste manual (Saída)')}</p>
-                                            <div className="flex flex-wrap gap-4 text-xs font-medium text-gray-500">
+                                            <div className="flex flex-col sm:flex-row gap-1 sm:gap-4 text-xs font-medium text-gray-500">
                                                 <span>Quantidade: <strong className="text-gray-900">{mov.quantity} {movementsModal.item.unit}</strong></span>
                                                 <span>Responsável: {mov.responsible_name}</span>
                                                 <span>Data: {new Date(mov.created_at).toLocaleDateString('pt-BR')} às {new Date(mov.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -503,7 +560,7 @@ export default function InventoryManager({ title, category, data = [], customFie
             {/* ========================================== */}
             <BaseModal isOpen={registerModal.isOpen} onClose={() => setRegisterModal({ isOpen: false, item: null })} title="Nova Movimentação">
                 <form onSubmit={submitMovement} className="p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Insumo</label>
                             <input type="text" value={registerModal.item?.name || ''} className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-500" disabled />
@@ -517,7 +574,7 @@ export default function InventoryManager({ title, category, data = [], customFie
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Quantidade ({registerModal.item?.unit}) *</label>
                             <input type="number" step="0.01" value={movementForm.data.quantity} onChange={e => movementForm.setData('quantity', e.target.value)} className="mt-1 block w-full rounded-md border-gray-300" required />
@@ -536,8 +593,8 @@ export default function InventoryManager({ title, category, data = [], customFie
                     </div>
 
                     <div className="mt-6 flex justify-end gap-3">
-                        <button type="button" onClick={() => setRegisterModal({ isOpen: false, item: null })} className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg">Cancelar</button>
-                        <button type="submit" disabled={movementForm.processing} className="px-6 py-2 bg-indigo-500 text-white font-bold rounded-lg hover:bg-indigo-600">{movementForm.processing ? 'Registrando...' : 'Registrar'}</button>
+                        <button type="button" onClick={() => setRegisterModal({ isOpen: false, item: null })} className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg w-full sm:w-auto">Cancelar</button>
+                        <button type="submit" disabled={movementForm.processing} className="px-6 py-2 bg-indigo-500 text-white font-bold rounded-lg hover:bg-indigo-600 w-full sm:w-auto">{movementForm.processing ? 'Registrando...' : 'Registrar'}</button>
                     </div>
                 </form>
             </BaseModal>
@@ -547,10 +604,10 @@ export default function InventoryManager({ title, category, data = [], customFie
             {/* ========================================== */}
             <BaseModal isOpen={globalModalOpen} onClose={() => setGlobalModalOpen(false)} title={`Histórico Geral: ${title}`}>
                 <div className="p-6 bg-gray-50/50">
-                    <div className="mb-6 flex gap-2">
-                        <button onClick={() => setGlobalFilter('all')} className={`px-4 py-2 text-xs font-bold rounded-lg border ${globalFilter === 'all' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>Todas</button>
-                        <button onClick={() => setGlobalFilter('in')} className={`px-4 py-2 text-xs font-bold rounded-lg border ${globalFilter === 'in' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-700 border-green-200 hover:bg-green-50'}`}>Só Entradas</button>
-                        <button onClick={() => setGlobalFilter('out')} className={`px-4 py-2 text-xs font-bold rounded-lg border ${globalFilter === 'out' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-red-700 border-red-200 hover:bg-red-50'}`}>Só Saídas</button>
+                    <div className="mb-6 flex flex-wrap gap-2">
+                        <button onClick={() => setGlobalFilter('all')} className={`px-4 py-2 text-xs font-bold rounded-lg border flex-1 sm:flex-none ${globalFilter === 'all' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>Todas</button>
+                        <button onClick={() => setGlobalFilter('in')} className={`px-4 py-2 text-xs font-bold rounded-lg border flex-1 sm:flex-none ${globalFilter === 'in' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-700 border-green-200 hover:bg-green-50'}`}>Só Entradas</button>
+                        <button onClick={() => setGlobalFilter('out')} className={`px-4 py-2 text-xs font-bold rounded-lg border flex-1 sm:flex-none ${globalFilter === 'out' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-red-700 border-red-200 hover:bg-red-50'}`}>Só Saídas</button>
                     </div>
 
                     <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
@@ -572,7 +629,7 @@ export default function InventoryManager({ title, category, data = [], customFie
                                                 </span>
                                             </div>
                                             <p className="text-sm text-gray-600 mb-2">{mov.description || 'Ajuste manual de estoque'}</p>
-                                            <div className="flex flex-wrap gap-4 text-xs font-medium text-gray-500">
+                                            <div className="flex flex-col sm:flex-row gap-1 sm:gap-4 text-xs font-medium text-gray-500">
                                                 <span>Quantidade: <strong className="text-gray-900">{mov.quantity} {mov.unit}</strong></span>
                                                 <span>Resp: {mov.responsible_name}</span>
                                                 <span>Data: {new Date(mov.created_at).toLocaleDateString('pt-BR')} às {new Date(mov.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -592,21 +649,20 @@ export default function InventoryManager({ title, category, data = [], customFie
             <BaseModal isOpen={detailsModal.isOpen} onClose={() => setDetailsModal({ isOpen: false, item: null })} title="Ficha Técnica do Insumo">
                 <div className="p-6 bg-white">
                     <div className="mb-6 flex items-center gap-3 pb-4 border-b border-gray-100">
-                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
                             <InfoIcon />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-gray-900">{detailsModal.item?.name}</h3>
+                            <h3 className="text-lg font-bold text-gray-900 leading-tight">{detailsModal.item?.name}</h3>
                             <p className="text-sm text-gray-500">Fornecedor: {detailsModal.item?.provider || 'Não informado'}</p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-y-6 gap-x-8">
-                        {/* A MÁGICA: Varre o JSON e imprime tudo formatado automaticamente! */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
                         {detailsModal.item?.details && Object.entries(detailsModal.item.details).map(([key, value]) => (
                             <div key={key}>
                                 <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
-                                    {key.replace(/_/g, ' ')} {/* Tira os underlines do nome do campo */}
+                                    {key.replace(/_/g, ' ')}
                                 </span>
                                 <span className="block text-sm font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100">
                                     {value || 'Não informado'}
@@ -616,7 +672,7 @@ export default function InventoryManager({ title, category, data = [], customFie
                     </div>
 
                     <div className="mt-8 flex justify-end">
-                        <button onClick={() => setDetailsModal({ isOpen: false, item: null })} className="px-6 py-2 bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800 transition-colors">
+                        <button onClick={() => setDetailsModal({ isOpen: false, item: null })} className="px-6 py-2 w-full sm:w-auto bg-gray-900 text-white font-bold rounded-lg hover:bg-gray-800 transition-colors">
                             Fechar Ficha
                         </button>
                     </div>
