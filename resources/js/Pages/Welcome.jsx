@@ -326,7 +326,7 @@ export default function Welcome({ auth }) {
                             disabled={processing}
                             className="w-full py-4 bg-indigo-600 font-bold rounded-lg hover:bg-indigo-500 text-white transition-colors disabled:opacity-50 text-sm flex items-center justify-center"
                         >
-                            {processing ? 'Enviando Solicitação...' : 'Enviar Solicitação 🚀'}
+                            {processing ? 'Enviando Solicitação...' : 'Enviar Solicitação'}
                         </button>
                     </form>
                 </div>
