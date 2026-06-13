@@ -9,11 +9,19 @@ export default function Hygiene({ auth, inventory }) {
     ];
 
     return (
-        <AuthenticatedLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800">Estoque: Higiene Pet</h2>}>
+        <AuthenticatedLayout 
+            user={auth.user} 
+            header={
+                <h2 className="text-sm font-medium text-gray-500 flex items-center">
+                    Insumos <span className="mx-2 text-gray-300">/</span> <span className="text-gray-900 font-semibold">Higiene Pet</span>
+                </h2>
+            }
+        >
             <Head title="Higiene - Estoque" />
             
             <InventoryManager 
                 title="Higiene Pet" 
+                subtitle="Gestão de produtos para banho, tosa e cuidados antiparasitários."
                 category="hygiene" 
                 data={inventory} 
                 customFields={customFields} 

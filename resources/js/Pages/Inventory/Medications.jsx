@@ -12,11 +12,19 @@ export default function Medications({ auth, inventory }) {
     ];
 
     return (
-        <AuthenticatedLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800">Estoque: Medicamentos</h2>}>
+        <AuthenticatedLayout 
+            user={auth.user} 
+            header={
+                <h2 className="text-sm font-medium text-gray-500 flex items-center">
+                    Insumos <span className="mx-2 text-gray-300">/</span> <span className="text-gray-900 font-semibold">Medicamentos</span>
+                </h2>
+            }
+        >
             <Head title="Medicamentos - Estoque" />
             
             <InventoryManager 
                 title="Medicamentos" 
+                subtitle="Controle de farmácia, validade e dosagens de tratamentos."
                 category="medications" 
                 data={inventory} 
                 customFields={customFields} 

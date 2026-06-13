@@ -22,7 +22,6 @@ const IconInsumos = () => (
 const IconVoluntarios = () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
 );
-// 💡 NOVO ÍCONE DE CONFIGURAÇÕES (CMS)
 const IconSettings = () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h-8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
 );
@@ -32,7 +31,6 @@ const IconChevron = ({ open }) => (
 const IconSair = () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
 );
-
 const IconHamburger = () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
 );
@@ -58,8 +56,6 @@ function NavLink({ href, icon, label, active }) {
 
 export default function AuthenticatedLayout({ user, header, children }) {
     const { url } = usePage();
-    
-    // Ignora os parâmetros (ex: ?search=) ao setar os estados iniciais dos dropdowns
     const baseUrl = url.split('?')[0];
 
     const [insumosOpen, setInsumosOpen] = useState(baseUrl.startsWith('/insumos') || baseUrl.startsWith('/inventory'));
@@ -71,7 +67,6 @@ export default function AuthenticatedLayout({ user, header, children }) {
     }, [url]);
 
     const isActive = (path) => {
-        // Ignora os parâmetros GET para manter o menu ativo mesmo com buscas
         const cleanUrl = url.split('?')[0];
         return path === '/' ? cleanUrl === '/' : cleanUrl.startsWith(path);
     };
@@ -103,7 +98,6 @@ export default function AuthenticatedLayout({ user, header, children }) {
                     <div className="ml-8 mt-1 space-y-0.5">
                         <NavLink href="/adoptions/requests" icon={null} label="Interessados" active={isActive('/adoptions/requests')} />
                         <NavLink href="/adopters" icon={null} label="Adotantes" active={isActive('/adopters')} />
-                        {/* 💡 Correção da marcação do Animais Adotados ignorando parâmetros */}
                         <NavLink href="/adoptions" icon={null} label="Animais Adotados" active={url.split('?')[0] === '/adoptions'} />
                     </div>
                 )}
@@ -113,13 +107,13 @@ export default function AuthenticatedLayout({ user, header, children }) {
                 <button
                     onClick={() => setInsumosOpen((o) => !o)}
                     className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
-                        isActive('/insumos') // Pega qualquer coisa que comece com /insumos
+                        isActive('/insumos') || isActive('/inventory')
                             ? 'bg-gray-900 text-white'
                             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                 >
                     <span className="flex items-center gap-3">
-                        <span className={isActive('/insumos') ? 'text-white' : 'text-gray-400'}>
+                        <span className={isActive('/insumos') || isActive('/inventory') ? 'text-white' : 'text-gray-400'}>
                             <IconInsumos />
                         </span>
                         Insumos
@@ -159,7 +153,6 @@ export default function AuthenticatedLayout({ user, header, children }) {
 
             <NavLink href="/volunteers" icon={<IconVoluntarios />} label="Voluntários" active={isActive('/volunteers')} />
 
-            {/* 💡 NOVO BOTÃO: CONFIGURAÇÕES DA VITRINE (CMS) */}
             <div className="mt-4 pt-4 border-t border-gray-100">
                 <NavLink 
                     href={route('tenant.settings.edit')} 
@@ -171,11 +164,23 @@ export default function AuthenticatedLayout({ user, header, children }) {
         </>
     );
 
+    // Renderiza a assinatura (watermark) do SaaS
+    const renderAssinaturaSistema = () => (
+    <div className="mb-3 flex items-center justify-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity">
+        <span className="text-[11px] text-gray-400 font-medium">
+            Desenvolvido por
+        </span>
+        <span className="text-[11px] font-black text-gray-900 tracking-tight">
+            4Fosters
+        </span>
+    </div>
+);
+
     return (
         <div className="flex flex-col md:flex-row h-screen bg-gray-50 font-sans overflow-hidden">
+            {/* Header Mobile */}
             <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 z-30 relative">
                 <div className="flex items-center gap-2.5">
-                    {/* 💡 Logo Dinâmica / Mobile */}
                     <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white overflow-hidden shrink-0">
                         {user?.ong?.logo_path ? (
                             <img src={`/storage/${user.ong.logo_path}`} alt="Logo da ONG" className="w-full h-full object-cover" />
@@ -183,7 +188,6 @@ export default function AuthenticatedLayout({ user, header, children }) {
                             <PawIcon />
                         )}
                     </div>
-                    {/* 💡 Nome Dinâmico com fallback elegante / Mobile */}
                     <span className="text-sm font-bold text-gray-900 truncate max-w-[150px]">
                         {user?.ong?.name || 'Logo'}
                     </span>
@@ -193,23 +197,28 @@ export default function AuthenticatedLayout({ user, header, children }) {
                 </button>
             </header>
 
+            {/* Menu Mobile Expandido */}
             {mobileMenuOpen && (
                 <div className="md:hidden absolute top-[57px] left-0 w-full bg-white border-b border-gray-100 shadow-lg z-20 flex flex-col max-h-[calc(100vh-57px)] overflow-y-auto">
                     <nav className="flex-1 px-4 py-4 space-y-1">
                         {renderNavItems()}
                     </nav>
-                    <div className="px-4 py-4 border-t border-gray-100">
-                        <Link href={route('logout')} method="post" as="button" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150">
+                    <div className="px-4 py-4 border-t border-gray-100 bg-gray-50/50">
+
+                      {renderAssinaturaSistema()}
+
+                        <Link href={route('logout')} method="post" as="button" className="w-full flex items-center justify-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150 border border-gray-200 bg-white">
                             <span className="text-gray-400"><IconSair /></span> Sair
                         </Link>
+                      
                     </div>
                 </div>
             )}
 
+            {/* Sidebar Desktop */}
             <aside className="hidden md:flex w-[240px] flex-shrink-0 bg-white border-r border-gray-100 flex-col h-full z-10">
                 <div className="px-4 py-5 border-b border-gray-100">
                     <div className="flex items-center gap-2.5">
-                        {/* 💡 Logo Dinâmica / Desktop */}
                         <div className="w-9 h-9 bg-gray-900 rounded-lg flex items-center justify-center text-white shadow-sm overflow-hidden shrink-0">
                             {user?.ong?.logo_path ? (
                                 <img src={`/storage/${user.ong.logo_path}`} alt="Logo da ONG" className="w-full h-full object-cover" />
@@ -218,7 +227,6 @@ export default function AuthenticatedLayout({ user, header, children }) {
                             )}
                         </div>
                         <div className="leading-tight overflow-hidden">
-                            {/* 💡 Nome Dinâmico com fallback elegante / Desktop */}
                             <p className="text-sm font-bold text-gray-900 truncate w-40" title={user?.ong?.name}>
                                 {user?.ong?.name || 'Logo'}
                             </p>
@@ -231,13 +239,28 @@ export default function AuthenticatedLayout({ user, header, children }) {
                     {renderNavItems()}
                 </nav>
 
-                <div className="px-2 py-4 border-t border-gray-100">
-                    <Link href={route('logout')} method="post" as="button" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150">
-                        <span className="text-gray-400"><IconSair /></span> Sair
+            <div className="px-3 pb-4 pt-2">
+                <div className="border-t border-gray-100 pt-4">
+
+                    {renderAssinaturaSistema()}
+
+                    <Link
+                        href={route('logout')}
+                        method="post"
+                        as="button"
+                        className="mt-3 w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-all duration-150"
+                    >
+                        <span className="text-gray-400">
+                            <IconSair />
+                        </span>
+                        Sair
                     </Link>
+
                 </div>
+            </div>
             </aside>
 
+            {/* Conteúdo Principal */}
             <div className="flex-1 flex flex-col overflow-hidden relative z-0">
                 {header && (
                     <header className="bg-white border-b border-gray-100 px-8 py-4 hidden md:block">

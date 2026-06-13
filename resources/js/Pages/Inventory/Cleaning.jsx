@@ -10,11 +10,19 @@ export default function Cleaning({ auth, inventory }) {
     ];
 
     return (
-        <AuthenticatedLayout user={auth.user} header={<h2 className="font-semibold text-xl text-gray-800">Estoque: Limpeza</h2>}>
+        <AuthenticatedLayout 
+            user={auth.user} 
+            header={
+                <h2 className="text-sm font-medium text-gray-500 flex items-center">
+                    Insumos <span className="mx-2 text-gray-300">/</span> <span className="text-gray-900 font-semibold">Limpeza</span>
+                </h2>
+            }
+        >
             <Head title="Limpeza - Estoque" />
             
             <InventoryManager 
-                title="Material de Limpeza" 
+                title="Limpeza" 
+                subtitle="Controle de produtos para higienização e desinfecção dos ambientes."
                 category="cleaning" 
                 data={inventory} 
                 customFields={customFields} 
