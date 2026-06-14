@@ -1,7 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import AdoptionModal from '@/Components/Vitrine/AdoptionModal'; 
-import VitrineLayout from '@/Layouts/VitrineLayout';
 
 export default function AnimalDetails({ animal, slug }) {
     const { tenant } = usePage().props;
@@ -13,7 +12,6 @@ export default function AnimalDetails({ animal, slug }) {
     const imageSource = animal.photo_url || (animal.photo_path ? `/storage/${animal.photo_path}` : null);
 
     return (
-        <VitrineLayout>
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <Head title={`Conheça ${animal.name}`} />
             
@@ -89,6 +87,5 @@ export default function AnimalDetails({ animal, slug }) {
                 />
             )}
         </div>
-        </VitrineLayout>
     );
 }
