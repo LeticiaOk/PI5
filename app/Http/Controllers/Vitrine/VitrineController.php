@@ -28,20 +28,22 @@ class VitrineController extends Controller
 }
 
  public function adote(Request $request, $slug)
-    {
-        $tenantId = app('currentTenant');
+{
+    $tenantId = app('currentTenant');
+    $ong = \App\Models\Ong::with('settings')->findOrFail($tenantId); // 👈 Puxa as configurações igual à Home
 
-        $pets = Animal::with(['breed', 'temporaryHome.address'])
-            ->where('ong_id', $tenantId)
-            ->where('status', 'available') // 👈 Limpamos o array e deixamos só o available
-            ->latest()
-            ->paginate(12);
+    $pets = Animal::with(['breed', 'temporaryHome.address'])
+        ->where('ong_id', $tenantId)
+        ->where('status', 'available')
+        ->latest()
+        ->paginate(12);
 
-        return Inertia::render('Vitrine/Adote', [
-            'pets' => $pets,
-            'slug' => $slug
-        ]);
-    }
+    return Inertia::render('Vitrine/Adote', [
+        'pets' => $pets,
+        'slug' => $slug,
+        'settings' => $ong->settings ?? [] // 👈 Enviamos as configurações de estilo aqui também!
+    ]);
+}
 
     public function comoAdotar($slug)
     {
@@ -49,19 +51,23 @@ class VitrineController extends Controller
     }
 
     public function quemSomos($slug)
-    {
-        return Inertia::render('Vitrine/QuemSomos', ['slug' => $slug]);
+    {   
+        $tenantId = app('currentTenant');
+        $ong = \App\Models\Ong::with('settings')->findOrFail($tenantId);
+        return Inertia::render('Vitrine/QuemSomos', ['slug' => $slug, 'settings' => $ong->settings ?? []]);
     }
 
     public function doar($slug)
-    {
-        return Inertia::render('Vitrine/Doar', ['slug' => $slug]);
+    { 
+        $tenantId = app('currentTenant');
+        $ong = \App\Models\Ong::with('settings')->findOrFail($tenantId);
+        return Inertia::render('Vitrine/Doar', ['slug' => $slug, 'settings' => $ong->settings ?? []]);
     }
 
     public function showAnimal($slug, $animalId)
     {
         $tenantId = app('currentTenant');
-
+        $ong = \App\Models\Ong::with('settings')->findOrFail($tenantId);
         $animal = Animal::with(['breed'])
             ->where('ong_id', $tenantId)
             ->where('id', $animalId)
@@ -70,7 +76,8 @@ class VitrineController extends Controller
 
         return Inertia::render('Vitrine/AnimalDetails', [
             'slug' => $slug,
-            'animal' => $animal
+            'animal' => $animal,
+            'settings' => $ong->settings ?? []
         ]);
     }
 }
