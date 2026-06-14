@@ -1,10 +1,13 @@
 import { Head, Link, usePage } from '@inertiajs/react';
+import VitrineLayout from '@/Layouts/VitrineLayout';
+
 
 export default function QuemSomos({ slug }) {
     const { tenant } = usePage().props;
     const primaryColor = tenant?.settings?.primary_color || '#4f46e5'; 
 
     return (
+        <VitrineLayout>
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
             <Head title={`Quem Somos - ${tenant?.name}`} />
             <h1 className="text-3xl font-bold mb-4">Nossa História</h1>
@@ -13,5 +16,6 @@ export default function QuemSomos({ slug }) {
             </p>
             <Link href={`/${slug}`} style={{ color: primaryColor }} className="font-bold underline">Voltar ao início</Link>
         </div>
+        </VitrineLayout>
     );
 }
