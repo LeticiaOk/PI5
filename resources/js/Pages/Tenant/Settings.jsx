@@ -4,6 +4,16 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 
 export default function Settings({ auth, settings, ongLogo }) {
     const { flash } = usePage().props;
+    const [logoPreview, setLogoPreview] = useState(ongLogo);
+
+    useEffect(() => {
+        return () => {
+            if (logoPreview?.startsWith('blob:')) {
+                URL.revokeObjectURL(logoPreview);
+            }
+        };
+    }, [logoPreview]);
+
     const [showFlash, setShowFlash] = useState(false);
     
     const { data, setData, post, processing, errors } = useForm({
@@ -51,9 +61,10 @@ export default function Settings({ auth, settings, ongLogo }) {
         });
     };
 
-    const handleRemoveImage = (field) => {
+   const handleRemoveImage = (field) => {
         if (window.confirm('Tem certeza que deseja remover esta imagem? Ela será apagada definitivamente ao salvar as alterações.')) {
             setData(field, true);
+            if (field === 'remove_logo') setLogoPreview(null); 
         }
     };
 
@@ -91,13 +102,13 @@ export default function Settings({ auth, settings, ongLogo }) {
                         <div>
                             <h3 className="text-lg font-bold text-gray-900 border-b pb-2 mb-4">1. Identidade Visual</h3>
                             
-                            {/* LOGOTIPO */}
+                           {/* LOGOTIPO */}
                             <div className="mb-6">
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Logo da Instituição</label>
-                                {ongLogo && !data.remove_logo && (
+                                {logoPreview && !data.remove_logo && (
                                     <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-xl inline-block w-auto">
                                         <span className="block text-xs text-gray-500 font-semibold mb-2">Logo Atual:</span>
-                                        <img src={ongLogo} alt="Logo Atual" className="h-16 w-auto object-contain mb-3" />
+                                        <img src={logoPreview} alt="Logo Atual" className="h-16 w-auto object-contain mb-3" />
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveImage('remove_logo')}
@@ -108,12 +119,23 @@ export default function Settings({ auth, settings, ongLogo }) {
                                         </button>
                                     </div>
                                 )}
-                                <input 
-                                    type="file" accept=".jpg,.jpeg,.png,.webp,.svg"
+                               <input
+                                    type="file"
+                                    accept=".jpg,.jpeg,.png,.webp,.svg"
                                     onChange={e => {
-                                        setData('logo_path', e.target.files[0]);
-                                        if (e.target.files[0]) setData('remove_logo', false);
-                                    }}
+                                    const file = e.target.files[0];
+
+                                    if (file) {
+                                    // Libera o blob anterior para evitar vazamento de memória
+                                    if (logoPreview?.startsWith('blob:')) {
+                                        URL.revokeObjectURL(logoPreview);
+                                    }
+
+                                    setData('logo_path', file);
+                                    setLogoPreview(URL.createObjectURL(file));
+                                    setData('remove_logo', false);
+                                    }
+                                }}
                                     className="w-full border border-gray-300 rounded-xl text-sm p-2 bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-all"
                                 />
                                 {errors.logo_path && <p className="text-red-500 text-xs mt-1">{errors.logo_path}</p>}
