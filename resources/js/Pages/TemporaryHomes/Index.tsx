@@ -312,14 +312,24 @@ export default function Index({ auth, temporaryHomes }: Props) {
                 ]}
                 renderMobileCard={(home) => (
                     <div key={home.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col gap-3">
-                         <div className="flex justify-between items-start">
-                            <div className="flex gap-3"><div className="mt-1"><HomeIcon /></div>
-                                <div><h3 className="font-bold text-gray-900">{home.name}</h3><p className="text-sm text-gray-500">{formatPhone(home.phone)}</p></div>
+                        <div className="flex justify-between items-start">
+                            <div className="flex gap-3 items-center">
+                                <HomeIcon />
+                                <div>
+                                    <h3 className="font-bold text-gray-900">{home.name}</h3>
+                                    <p className="text-sm text-gray-500">{formatPhone(home.phone)}</p>
+                                </div>
                             </div>
-                            <button onClick={() => setModalConfig({ isOpen: true, data: home })} className="text-indigo-600 bg-indigo-50 p-1.5 rounded-lg"><EditIcon /></button>
+                            <div className="flex gap-2">
+                                <button onClick={() => setModalConfig({ isOpen: true, data: home })} className="text-indigo-600 bg-indigo-50 p-1.5 rounded-lg">
+                                    <EditIcon />
+                                </button>
+                                {/* No Mobile, se preferir o ícone de deletar flutuante também, descomente abaixo */}
+                                { <Link href={route('temporary-homes.destroy', home.id)} method="delete" as="button" onClick={(e) => { if (!confirm(`Tem certeza que deseja excluir o lar de ${home.name}?`)) e.preventDefault(); }} className="text-red-600 bg-red-50 p-1.5 rounded-lg"><TrashIcon /></Link> }
+                            </div>
                         </div>
                         <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 text-sm">
-                            <span className="text-gray-600">📍 {home.address?.city}/{home.address?.state}</span>
+                            <span className="text-gray-600">📍 {home.address?.city && home.address?.state ? `${home.address.city}/${home.address.state}` : 'Sem Endereço'}</span>
                             <span className="font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Cap: {home.animals?.length || 0}/{home.max_capacity}</span>
                         </div>
                     </div>

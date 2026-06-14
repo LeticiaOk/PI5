@@ -26,30 +26,36 @@ export default function DataBrowser({
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState('newest');
 
-    const filteredAndSorted = useMemo(() => {
-        let list = [...data];
-        
-        if (search.trim()) {
-            list = list.filter(item => 
-                searchFn ? searchFn(item, search.toLowerCase()) : 
-                Object.values(item).some(val => 
-                    String(val).toLowerCase().includes(search.toLowerCase())
-                )
+const filteredAndSorted = useMemo(() => {
+        // 1. Filtragem da Busca
+        let list = data.filter(item => {
+            if (!search.trim()) return true;
+            if (searchFn) return searchFn(item, search.toLowerCase());
+            return Object.values(item).some(val => 
+                val !== null && val !== undefined && String(val).toLowerCase().includes(search.toLowerCase())
             );
-        }
+        });
 
+        // 2. Ordenação Absoluta no Front-end
         list.sort((a, b) => {
-            if (sortFn) return sortFn(a, b, sort);
-            return sort === 'newest' ? (b.id - a.id) : (a.id - b.id);
+            // Captura a data (formato ISO YYYY-MM-DD) ou usa o UUID/ID como fallback
+            const valA = String(a.created_at || a.arrival_date || a.id || '');
+            const valB = String(b.created_at || b.arrival_date || b.id || '');
+
+            // localeCompare organiza strings perfeitamente. 
+            // Como datas ISO seguem ordem cronológica natural, isso é infalível e não dá NaN.
+            return sort === 'newest' 
+                ? valB.localeCompare(valA) // Ordem decrescente (Mais novos primeiro)
+                : valA.localeCompare(valB); // Ordem crescente (Mais antigos primeiro)
         });
 
         return list;
-    }, [data, search, sort, searchFn, sortFn]);
+    }, [data, search, sort, searchFn]); // Sem sortFn aqui para o pai não interferir
 
     const toggleSort = () => setSort(s => (s === 'newest' ? 'oldest' : 'newest'));
 
     return (
-        <div className="py-6 sm:py-8 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="py-6 sm:py-8 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
             
             <div className="mb-6 sm:mb-8">
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">{title}</h1>
@@ -77,7 +83,7 @@ export default function DataBrowser({
                         className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-gray-700 shrink-0"
                     >
                         <SortIcon />
-                        {sort === 'newest' ? 'Mais novos' : 'Mais antigos'}
+                        {sort === 'newest' ? 'Mais recentes' : 'Mais antigos'}
                     </button>
                 </div>
 
@@ -94,15 +100,16 @@ export default function DataBrowser({
                 )}
             </div>
 
-            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
+            {/* TABELA COM SCROLL HORIZONTAL BLINDADO E PADDING REDUZIDO */}
+            <div className="hidden lg:block bg-white rounded-xl border border-gray-200 shadow-sm relative w-full overflow-hidden">
+                <div className="overflow-x-auto w-full">
+                    <table className="w-full text-sm text-left min-w-max">
                         <thead>
                             <tr className="border-b border-gray-100 bg-gray-50/80">
                                 {columns.map((col, index) => (
                                     <th 
                                         key={index} 
-                                        className={`px-6 py-4 text-[11px] font-bold tracking-wider text-gray-500 uppercase whitespace-nowrap ${col.key === 'actions' ? 'text-center' : 'text-left'}`}
+                                        className={`px-4 py-3 text-[11px] font-bold tracking-wider text-gray-500 uppercase whitespace-nowrap ${col.key === 'actions' ? 'text-center' : 'text-left'}`}
                                     >
                                         {col.label}
                                     </th>
@@ -112,7 +119,7 @@ export default function DataBrowser({
                         <tbody className="divide-y divide-gray-100">
                             {filteredAndSorted.length === 0 ? (
                                 <tr>
-                                    <td colSpan={columns.length} className="px-6 py-12 text-center text-gray-400">
+                                    <td colSpan={columns.length} className="px-4 py-12 text-center text-gray-400">
                                         Nenhum registro encontrado.
                                     </td>
                                 </tr>
@@ -120,7 +127,7 @@ export default function DataBrowser({
                                 filteredAndSorted.map((item, index) => (
                                     <tr key={item.id || index} className="hover:bg-gray-50/50 transition-colors">
                                         {columns.map((col, colIndex) => (
-                                            <td key={colIndex} className="px-6 py-4 whitespace-nowrap">
+                                            <td key={colIndex} className="px-4 py-3 whitespace-nowrap">
                                                 <div className={col.key === 'actions' ? 'flex justify-center items-center gap-2' : ''}>
                                                     {col.render ? col.render(item[col.key], item) : item[col.key]}
                                                 </div>
@@ -134,7 +141,7 @@ export default function DataBrowser({
                 </div>
             </div>
 
-            <div className="block md:hidden space-y-4 mt-4">
+            <div className="block lg:hidden space-y-4 mt-4">
                 {filteredAndSorted.length === 0 ? (
                     <div className="p-8 text-center text-gray-500 bg-white rounded-xl border border-gray-200 shadow-sm">
                         Nenhum registro encontrado.
