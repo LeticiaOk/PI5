@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
+import VitrineLayout from '@/Layouts/VitrineLayout';
 
 export default function Home({ slug, ong, settings, availableCount }) {
     
@@ -17,6 +18,7 @@ export default function Home({ slug, ong, settings, availableCount }) {
     const photo2 = settings?.about_photo_2 || "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?q=80&w=1000&auto=format&fit=crop";
 
     return (
+        <VitrineLayout>
         <div className="min-h-screen bg-white font-sans">
             <Head title={ong.name} />
 
@@ -158,5 +160,6 @@ export default function Home({ slug, ong, settings, availableCount }) {
     )}
 </section> 
         </div>
+        </VitrineLayout>
     );
 }

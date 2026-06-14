@@ -1,11 +1,13 @@
-// resources/js/Components/Vitrine/AdoptionModal.jsx
-
 import { useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function AdoptionModal({ pet, slug, onClose }) {
     // Estado interno para controlar se exibe o formulário ou a tela de sucesso
     const [isSubmitted, setIsSubmitted] = useState(false);
+
+    // Proteção absoluta: Se o pet vier undefined (como no Header), evita que a tela fique branca
+    const petName = pet?.name || 'Animal';
+    const petId = pet?.id || '';
 
     // Inicialização do estado do formulário
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -19,9 +21,15 @@ export default function AdoptionModal({ pet, slug, onClose }) {
     const submit = (e) => {
         e.preventDefault();
         
+        // Só dispara se houver ID de destino válido
+        if (!petId) {
+            alert('Erro: Nenhum animal foi selecionado para esta adoção.');
+            return;
+        }
+
         post(route('vitrine.adote.store', { 
             slug: slug, 
-            animal_uuid: pet.id 
+            animal_uuid: petId 
         }), {
             preserveScroll: true,
             onSuccess: () => {
@@ -51,11 +59,11 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                     /* ── TELA 1: FORMULÁRIO DE INTERESSE ─────────────────────── */
                     <>
                         <div className="mb-6">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 mb-2">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-gray-100 text-[#111827] mb-2">
                                 💌 Formulário de Interesse
                             </span>
                             <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-                                Adotar o(a) <span className="text-indigo-600">{pet.name}</span>
+                                Adotar o(a) <span className="text-[#111827]">{petName}</span>
                             </h2>
                             <p className="text-sm text-gray-500 mt-1 leading-relaxed">
                                 Deixe seus dados de contato abaixo. A equipe responsável analisará seu perfil e retornará o quanto antes!
@@ -71,7 +79,7 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                                     id="adopter_name"
                                     type="text"
                                     placeholder="Ex: João Silva"
-                                    className={`w-full px-4 py-3 text-sm border rounded-xl bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium placeholder:text-gray-400 ${
+                                    className={`w-full px-4 py-3 text-sm border rounded-xl bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-gray-800 focus:border-gray-800 transition-all font-medium placeholder:text-gray-400 ${
                                         errors.adopter_name ? 'border-red-300 ring-1 ring-red-300' : 'border-gray-200'
                                     }`}
                                     value={data.adopter_name}
@@ -93,7 +101,7 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                                     id="adopter_email"
                                     type="email"
                                     placeholder="seuemail@exemplo.com"
-                                    className={`w-full px-4 py-3 text-sm border rounded-xl bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium placeholder:text-gray-400 ${
+                                    className={`w-full px-4 py-3 text-sm border rounded-xl bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-gray-800 focus:border-gray-800 transition-all font-medium placeholder:text-gray-400 ${
                                         errors.adopter_email ? 'border-red-300 ring-1 ring-red-300' : 'border-gray-200'
                                     }`}
                                     value={data.adopter_email}
@@ -115,7 +123,7 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                                     id="adopter_phone"
                                     type="tel"
                                     placeholder="(00) 00000-0000"
-                                    className={`w-full px-4 py-3 text-sm border rounded-xl bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium placeholder:text-gray-400 ${
+                                    className={`w-full px-4 py-3 text-sm border rounded-xl bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-gray-800 focus:border-gray-800 transition-all font-medium placeholder:text-gray-400 ${
                                         errors.adopter_phone ? 'border-red-300 ring-1 ring-red-300' : 'border-gray-200'
                                     }`}
                                     value={data.adopter_phone}
@@ -138,11 +146,11 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                                         required
                                         checked={data.terms_accepted}
                                         onChange={(e) => setData('terms_accepted', e.target.checked)}
-                                        className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-2 focus:ring-indigo-500 text-indigo-600"
+                                        className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-2 focus:ring-gray-800 text-gray-900"
                                     />
                                 </div>
                                 <label htmlFor="terms" className="ml-2 text-xs text-gray-500 leading-tight">
-                                    Li e aceito os <a href="#" className="text-indigo-600 hover:underline">Termos de Uso</a> e autorizo o uso dos meus dados para este processo. <span className="text-red-500">*</span>
+                                    Li e aceito os <a href="#" className="text-gray-900 underline font-semibold hover:text-gray-700">Termos de Uso</a> e autorizo o uso dos meus dados para este processo. <span className="text-red-500">*</span>
                                 </label>
                             </div>
                             {errors.terms_accepted && <p className="text-red-500 text-xs mt-1">{errors.terms_accepted}</p>}
@@ -155,7 +163,7 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                                         type="checkbox"
                                         checked={data.accepts_marketing}
                                         onChange={(e) => setData('accepts_marketing', e.target.checked)}
-                                        className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-2 focus:ring-indigo-500 text-indigo-600"
+                                        className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-2 focus:ring-gray-800 text-gray-900"
                                     />
                                 </div>
                                 <label htmlFor="marketing" className="ml-2 text-xs text-gray-500 leading-tight">
@@ -167,7 +175,8 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex-1 inline-flex items-center justify-center py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-2xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 active:scale-[0.98]"
+                                    className="flex-1 inline-flex items-center justify-center py-3.5 px-4 text-white text-sm font-bold rounded-2xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-800 disabled:opacity-60 active:scale-[0.98]"
+                                    style={{ backgroundColor: '#111827' }}
                                 >
                                     {processing ? (
                                         <span className="flex items-center gap-2">
@@ -195,7 +204,6 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                 ) : (
                     /* ── TELA 2: DESIGN DE FEEDBACK VISUAL DE SUCESSO ────────────── */
                     <div className="text-center py-6 animate-scale-up">
-                        {/* Ícone Animado/Estilizado com círculos concêntricos */}
                         <div className="mx-auto mb-6 relative w-20 h-20 bg-green-50 rounded-full flex items-center justify-center">
                             <div className="absolute inset-0 rounded-full bg-green-100/60 animate-ping opacity-75" style={{ animationDuration: '2s' }} />
                             <span className="text-4xl relative z-10">🎉</span>
@@ -206,7 +214,7 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                         </h2>
                         
                         <p className="text-sm text-gray-500 mt-3 max-w-sm mx-auto leading-relaxed">
-                            Obrigado pelo interesse em adotar o(a) <strong>{pet.name}</strong>! Seus dados foram salvos com sucesso e enviados para a ONG.
+                            Obrigado pelo interesse em adotar o(a) <strong>{petName}</strong>! Seus dados foram salvos com sucesso e enviados para a ONG.
                         </p>
 
                         <div className="mt-6 p-4 bg-gray-50 rounded-2xl border border-gray-100 text-left space-y-2">
@@ -221,7 +229,8 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="mt-8 w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-2xl shadow-md shadow-indigo-100 transition-all active:scale-[0.98]"
+                            className="mt-8 w-full py-3.5 px-4 text-white text-sm font-bold rounded-2xl shadow-md transition-all active:scale-[0.98]"
+                            style={{ backgroundColor: '#111827' }}
                         >
                             Voltar para a Vitrine
                         </button>
