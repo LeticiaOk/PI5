@@ -8,6 +8,7 @@ export default function VitrineLayout({ children }) {
     // Captura os dados globais compartilhados pelo Inertia
     const { props } = usePage();
     
+    const ong = props.ong || {};
     const slug = props.slug; 
     const settings = props.settings || {}; 
     const tenantName = props.tenant?.name || 'Instituição'; 
@@ -23,7 +24,7 @@ export default function VitrineLayout({ children }) {
             </main>
 
             {/* Footer Global da Instituição Modularizado */}
-            <Footer settings={settings} tenantName={tenantName} />
+            <Footer settings={settings} ong={ong} tenantName={tenantName} />
         </div>
     );
 }

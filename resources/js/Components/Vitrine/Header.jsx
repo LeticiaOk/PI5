@@ -4,14 +4,17 @@ import { useState } from 'react';
 export default function Header({ slug }) {
     const [isOpen, setIsOpen] = useState(false);
     
-    // Captura a URL atual e as props globais (que vêm do middleware do Inertia)
     const { url, props } = usePage();
-    const tenant = props.tenant || {};
-    const settings = tenant.settings || {};
+    
+    // Lê 'ong' conforme enviado pelo Controller
+    const ong = props.ong || {}; 
+    const settings = props.settings || {};
 
-    // Dados Dinâmicos da ONG atual
-    const ongName = tenant.name || 'Nossa ONG';
-    const primaryColor = settings.primary_color || '#ff5733'; // Laranja como fallback
+    const ongName = ong.name || 'Instituição';
+    const primaryColor = settings.primary_color || '#ff5733'; 
+    
+    // 🛡️ Lê o logo_path direto da Model Ong
+    const logoUrl = ong.logo_path;
 
     const navLinks = [
         { name: 'Home', href: route('vitrine.home', { slug }) },
@@ -33,24 +36,31 @@ export default function Header({ slug }) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     
-                    {/* LOGO E NOME DINÂMICOS DO TENANT */}
+                    {/* LOGO E NOME DINÂMICOS */}
                     <Link 
                         href={route('vitrine.home', { slug })}
-                        className="flex items-center gap-2.5 group focus:outline-none"
+                        className="flex items-center gap-3 group focus:outline-none"
                     >
-                        <span className="text-3xl transition-transform group-hover:scale-110 duration-300 select-none">
-                            🐾
-                        </span>
+                        {logoUrl ? (
+                            <img 
+                                // O src precisa do caminho correto. Se o banco salva "/storage/...", está ótimo.
+                                src={logoUrl} 
+                                alt={`Logo ${ongName}`} 
+                                className="h-10 w-auto object-contain transition-transform group-hover:scale-105 duration-300"
+                            />
+                        ) : (
+                            <span className="text-3xl transition-transform group-hover:scale-110 duration-300 select-none">
+                                🐾
+                            </span>
+                        )}
                         <div className="flex flex-col">
-                            <span 
-                                className="text-lg font-black tracking-tight text-gray-900 leading-tight transition-colors"
-                            >
+                            <span className="text-lg font-black tracking-tight text-gray-900 leading-tight transition-colors">
                                 {ongName}
                             </span>
                         </div>
                     </Link>
 
-                    {/* NAVBAR PARA DESKTOP */}
+                    {/* NAVBAR DESKTOP */}
                     <nav className="hidden md:flex items-center gap-8">
                         {navLinks.map((link) => (
                             <Link
@@ -70,7 +80,7 @@ export default function Header({ slug }) {
                         ))}
                     </nav>
 
-                    {/* BOTÃO DE DOAÇÃO EM DESTAQUE (Com cor dinâmica) */}
+                    {/* BOTÃO DE DOAÇÃO */}
                     <div className="hidden md:block">
                         <Link
                             href={route('vitrine.doar', { slug })}
@@ -81,12 +91,12 @@ export default function Header({ slug }) {
                         </Link>
                     </div>
 
-                    {/* BOTÃO HAMBÚRGUER (MOBILE) */}
+                    {/* HAMBÚRGUER MOBILE */}
                     <div className="flex md:hidden">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
                             type="button"
-                            className="inline-flex items-center justify-center p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none transition-colors"
+                            className="inline-flex items-center justify-center p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                         >
                             {isOpen ? (
                                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -99,11 +109,10 @@ export default function Header({ slug }) {
                             )}
                         </button>
                     </div>
-
                 </div>
             </div>
 
-            {/* NAVBAR EXPANSÍVEL (MOBILE) */}
+            {/* MOBILE MENU */}
             {isOpen && (
                 <div className="md:hidden bg-white border-b border-gray-100 animate-slide-down">
                     <div className="px-4 pt-2 pb-6 space-y-2">
@@ -113,16 +122,13 @@ export default function Header({ slug }) {
                                 href={link.href}
                                 onClick={() => setIsOpen(false)}
                                 className={`block px-4 py-3 rounded-xl text-base font-bold transition-all ${
-                                    isActive(link.href)
-                                        ? 'bg-gray-50' 
-                                        : 'text-gray-600 hover:bg-gray-50'
+                                    isActive(link.href) ? 'bg-gray-50' : 'text-gray-600 hover:bg-gray-50'
                                 }`}
                                 style={{ color: isActive(link.href) ? primaryColor : undefined }}
                             >
                                 {link.name}
                             </Link>
                         ))}
-                        
                         <div className="pt-4 px-4">
                             <Link
                                 href={route('vitrine.doar', { slug })}
@@ -130,7 +136,7 @@ export default function Header({ slug }) {
                                 className="w-full flex items-center justify-center gap-2 py-3.5 text-white text-base font-black rounded-xl shadow-md transition-colors"
                                 style={{ backgroundColor: primaryColor }}
                             >
-                                ❤️ Faça uma doação
+                                Faça uma doação
                             </Link>
                         </div>
                     </div>

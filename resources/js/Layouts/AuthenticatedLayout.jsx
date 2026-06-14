@@ -182,11 +182,16 @@ export default function AuthenticatedLayout({ user, header, children }) {
             <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 z-30 relative">
                 <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center text-white overflow-hidden shrink-0">
-                        {user?.ong?.logo_path ? (
-                            <img src={`/storage/${user.ong.logo_path}`} alt="Logo da ONG" className="w-full h-full object-cover" />
-                        ) : (
-                            <PawIcon />
-                        )}
+                       {user?.ong?.logo_path ? (
+    <img 
+        src={user.ong.logo_path} // Removi o /storage/ daqui, pois já vem do banco
+        alt="Logo da Instituição" 
+        className="w-full h-full object-cover" 
+        onError={(e) => { e.target.style.display = 'none'; }} // Se a imagem falhar, esconde
+    />
+) : (
+    <PawIcon />
+)}
                     </div>
                     <span className="text-sm font-bold text-gray-900 truncate max-w-[150px]">
                         {user?.ong?.name || 'Logo'}
@@ -220,11 +225,16 @@ export default function AuthenticatedLayout({ user, header, children }) {
                 <div className="px-4 py-5 border-b border-gray-100">
                     <div className="flex items-center gap-2.5">
                         <div className="w-9 h-9 bg-gray-900 rounded-lg flex items-center justify-center text-white shadow-sm overflow-hidden shrink-0">
-                            {user?.ong?.logo_path ? (
-                                <img src={`/storage/${user.ong.logo_path}`} alt="Logo da ONG" className="w-full h-full object-cover" />
-                            ) : (
-                                <PawIcon />
-                            )}
+                           {user?.ong?.logo_path ? (
+    <img 
+        src={user.ong.logo_path} // Removi o /storage/ daqui, pois já vem do banco
+        alt="Logo da Instituição" 
+        className="w-full h-full object-cover" 
+        onError={(e) => { e.target.style.display = 'none'; }} // Se a imagem falhar, esconde
+    />
+) : (
+    <PawIcon />
+)}
                         </div>
                         <div className="leading-tight overflow-hidden">
                             <p className="text-sm font-bold text-gray-900 truncate w-40" title={user?.ong?.name}>
