@@ -117,13 +117,13 @@ export default function Footer({ settings = {}, ong = {}, tenantName = 'Institui
                     <div className="text-center md:text-right flex items-center justify-center gap-1.5">
                         <span>Tecnologia para instituições por</span>
                         <a 
-                            href="https://4fosters.com" 
+                            href="http://localhost:8000/" 
                             target="_blank"
                             rel="noopener noreferrer"
                             className="font-black hover:opacity-70 transition-colors"
                             style={{ color: primaryColor }}
                         >
-                            4Fosters
+                            Foursters
                         </a>
                     </div>
                 </div>

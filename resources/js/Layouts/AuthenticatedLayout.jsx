@@ -171,7 +171,7 @@ export default function AuthenticatedLayout({ user, header, children }) {
             Desenvolvido por
         </span>
         <span className="text-[11px] font-black text-gray-900 tracking-tight">
-            4Fosters
+            Foursters
         </span>
     </div>
 );
