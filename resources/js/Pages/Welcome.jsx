@@ -117,7 +117,7 @@ export default function Welcome({ auth }) {
                         <img 
                             src="/images/logo.png" 
                             alt="Logo Fourster" 
-                            className="h-10 w-auto" 
+                            className="h-16 w-auto"
                         />
                     </div>
 

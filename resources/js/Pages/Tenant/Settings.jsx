@@ -348,12 +348,12 @@ export default function Settings({ auth, settings, ongLogo }) {
                                 {/* O alerta agora depende do showFlash */}
                                 {showFlash && flash?.success && (
                                     <span className="inline-flex items-center gap-2 text-emerald-700 font-bold text-sm bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-100 animate-fade-in">
-                                         ✨ {flash.success}
+                                          {flash.success}
                                     </span>
                                 )}
                                 {hasErrors && (
                                     <span className="inline-flex items-center gap-2 text-red-600 font-bold text-sm bg-red-50 px-4 py-2 rounded-lg animate-fade-in">
-                                         ⚠️ Existem erros no formulário. Verifique os campos acima.
+                                          Existem erros no formulário. Verifique os campos acima.
                                     </span>
                                 )}
                             </div>

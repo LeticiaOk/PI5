@@ -67,12 +67,19 @@ export default function AuthenticatedLayout({ user, header, children }) {
     }, [url]);
 
     const isActive = (path) => {
-        const cleanUrl = url.split('?')[0];
+        const cleanUrl = url.split('?')[0].replace(/^\/painel/, '');
         return path === '/' ? cleanUrl === '/' : cleanUrl.startsWith(path);
     };
 
     const renderNavItems = () => (
         <>
+            {/* painel */}
+            <NavLink 
+                href="/dashboard" 
+                icon={<IconSettings />} 
+                label="Painel" 
+                active={isActive('/dashboard')} 
+            />
             <NavLink href="/animals" icon={<IconAnimais />} label="Animais" active={isActive('/animals')} />
             <NavLink href="/temporary-homes" icon={<IconLares />} label="Lares temporários" active={isActive('/temporary-homes')} />
 
