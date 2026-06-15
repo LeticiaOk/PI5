@@ -18,6 +18,14 @@ export default function AdoptionModal({ pet, slug, onClose }) {
         accepts_marketing: false, 
     });
 
+    const formatPhone = (value) => {
+    return value
+        .replace(/\D/g, '')
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+        .slice(0, 15);
+};
+
     const submit = (e) => {
         e.preventDefault();
         
@@ -122,12 +130,15 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                                 <input
                                     id="adopter_phone"
                                     type="tel"
+                                    inputMode="numeric"   // 👈 teclado numérico no mobile
                                     placeholder="(00) 00000-0000"
                                     className={`w-full px-4 py-3 text-sm border rounded-xl bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-gray-800 focus:border-gray-800 transition-all font-medium placeholder:text-gray-400 ${
                                         errors.adopter_phone ? 'border-red-300 ring-1 ring-red-300' : 'border-gray-200'
                                     }`}
                                     value={data.adopter_phone}
-                                    onChange={e => setData('adopter_phone', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('adopter_phone', formatPhone(e.target.value))
+                                    }
                                     required
                                 />
                                 {errors.adopter_phone && (
@@ -187,7 +198,7 @@ export default function AdoptionModal({ pet, slug, onClose }) {
                                             Enviando...
                                         </span>
                                     ) : (
-                                        'Confirmar Interesse ✨'
+                                        'Confirmar Interesse'
                                     )}
                                 </button>
                                 
