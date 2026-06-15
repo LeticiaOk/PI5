@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react'; // 👈 Importado useForm e usePage
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 const FeatureIcon = ({ path }) => (
     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 mb-4">
@@ -9,7 +9,6 @@ const FeatureIcon = ({ path }) => (
     </div>
 );
 
-// Ícone abstrato usado na seção de "ONGs parceiras"
 const PartnerMark = ({ path }) => (
     <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-white border border-slate-200 text-slate-400">
         <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
@@ -49,45 +48,41 @@ const FAQItem = ({ question, answer, isOpen, onToggle }) => (
 
 export default function Welcome({ auth }) {
     const [openFaq, setOpenFaq] = useState(0);
-
-    // 💡 Captura os alertas do Laravel de forma reativa pela sessão
     const { flash } = usePage().props;
 
-    // 💡 Substituído o useState pelo useForm do Inertia com as chaves exatas que o Controller espera
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
         ong_name: '',
         email: '',
-        phone: '', // Campo novo e vital para contato comercial
-        terms_accepted: false, // Campo exigido pela LGPD
+        phone: '', 
+        terms_accepted: false, 
     });
 
-    // 💡 Função de envio conectada ao Inertia
     const submit = (e) => {
         e.preventDefault();
         post(route('landing.lead.store'), {
             preserveScroll: true,
-            onSuccess: () => reset(), // Limpa tudo se der certo
+            onSuccess: () => reset(), 
         });
     };
 
     const steps = [
         {
             number: '01',
-            title: 'Solicite seu convite',
-            description: 'Conte um pouco sobre a sua ONG ou abrigo. Em até 1 dia útil você recebe o acesso para começar.',
+            title: 'Peça o seu acesso',
+            description: 'Conte um pouco sobre o trabalho que realiza. Em até 1 dia útil, liberamos a sua entrada na plataforma.',
             icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
         },
         {
             number: '02',
-            title: 'Configuração assistida',
-            description: 'Ajudamos a importar seus animais, voluntários e insumos, e deixamos a página pública da sua ONG no ar.',
+            title: 'Apoio nos primeiros passos',
+            description: 'A nossa equipa ajuda-o a registar os primeiros animais e itens para a sua página já nascer pronta.',
             icon: 'M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a7.712 7.712 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z',
         },
         {
             number: '03',
-            title: 'Gestão total em um só lugar',
-            description: 'Estoque, animais, adoções, lares temporários e voluntários — tudo sincronizado com o site da sua ONG.',
+            title: 'Tudo num só lugar',
+            description: 'Stock, adoções, lares temporários e voluntários — tudo organizado e conectado com o seu site público.',
             icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2',
         },
     ];
@@ -95,41 +90,42 @@ export default function Welcome({ auth }) {
     const faqs = [
         {
             question: 'O sistema é gratuito?',
-            answer: 'Durante o período de convites, a PlataformaX é gratuita para ONGs e cuidadores independentes. Conforme o produto evolui, vamos avisar com antecedência sobre qualquer mudança de plano.',
+            answer: 'Durante o período de convites, a Fourster é gratuita para ONGs e cuidadores independentes. Conforme o produto evolui, avisaremos com antecedência sobre qualquer mudança de plano.',
         },
         {
-            question: 'Preciso de treinamento para usar?',
-            answer: 'Não. Durante a configuração assistida, ajudamos a cadastrar seus primeiros animais, insumos e voluntários, e você já sai usando. A interface foi pensada para quem tem pouco tempo de sobra.',
+            question: 'Preciso de formação para usar?',
+            answer: 'Não. Durante a configuração assistida, ajudamos a registar os seus primeiros animais, itens e voluntários, e já sai a usar. A interface foi pensada para quem tem pouco tempo livre.',
         },
         {
-            question: 'Meus dados estão seguros?',
-            answer: 'Sim. Cada ONG tem seu próprio espaço isolado dentro da plataforma, com acesso restrito apenas à sua equipe. Você decide o que aparece publicamente na sua página de adoção.',
+            question: 'Os meus dados estão seguros?',
+            answer: 'Sim. Cada ONG tem o seu próprio espaço isolado dentro da plataforma, com acesso restrito apenas à sua equipa. Você decide o que aparece publicamente na sua página de adoção.',
         },
         {
             question: 'A página pública fica no meu domínio?',
-            answer: 'Sua ONG recebe uma página própria com endereço exclusivo, no formato suaong.plataformax.com.br, com cores e banners personalizáveis pelo mini CMS — sem precisar configurar nada.',
+            answer: 'A sua ONG recebe uma página própria com endereço exclusivo, no formato suaong.fourster.com.br, com cores e banners personalizáveis de forma visual — sem precisar de configurações complexas.',
         },
     ];
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans scroll-smooth">
-            <Head title="PlataformaX | Gestão Inteligente para ONGs" />
+            <Head title="Fourster | Gestão Organizada para ONGs" />
 
             {/* NAVBAR */}
             <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-xl">X</span>
-                        </div>
-                        <span className="text-xl font-black text-slate-900">PlataformaX</span>
+                    <div className="flex items-center gap-3">
+                        <img 
+                            src="/images/logo.png" 
+                            alt="Logo Fourster" 
+                            className="h-10 w-auto" 
+                        />
                     </div>
 
                     <div className="hidden md:flex items-center gap-8">
                         <a href="#features" className="text-sm font-medium text-slate-600 hover:text-indigo-600">Recursos</a>
                         <a href="#como-funciona" className="text-sm font-medium text-slate-600 hover:text-indigo-600">Como funciona</a>
                         <a href="#faq" className="text-sm font-medium text-slate-600 hover:text-indigo-600">Dúvidas</a>
-                        <a href="#contato" className="text-sm font-medium text-slate-600 hover:text-indigo-600">Solicitar Convite</a>
+                        <a href="#contato" className="text-sm font-medium text-slate-600 hover:text-indigo-600">Pedir Acesso</a>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -146,13 +142,13 @@ export default function Welcome({ auth }) {
             <main className="pt-40 pb-24 text-center">
                 <div className="max-w-7xl mx-auto px-4">
                     <h1 className="text-5xl sm:text-6xl font-black text-slate-900 tracking-tight mb-8">
-                        A gestão da sua ONG <br />
-                        <span className="text-indigo-600">inteligente e exclusiva.</span>
+                        Organize o dia a dia da sua ONG <br />
+                        <span className="text-indigo-600">sem complicação.</span>
                     </h1>
                     <p className="max-w-2xl mx-auto text-xl text-slate-600 mb-10">
-                        Do estoque aos animais disponíveis para adoção: tudo o que você registra no sistema aparece automaticamente na página pública da sua ONG.
+                        Do controlo de ração aos peludos para adoção: gerencie tudo em um só lugar e tenha sua própria página pública atualizada automaticamente.
                     </p>
-                    <a href="#contato" className="px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all">Solicitar Convite</a>
+                    <a href="#contato" className="px-8 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all">Pedir meu acesso</a>
                 </div>
             </main>
 
@@ -161,18 +157,18 @@ export default function Welcome({ auth }) {
                 <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-8">
                     <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100">
                         <FeatureIcon path="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        <h3 className="text-xl font-bold mb-3">Estoque Inteligente</h3>
-                        <p className="text-slate-600">Auto-preenchimento preditivo e alertas de estoque crítico em tempo real.</p>
+                        <h3 className="text-xl font-bold mb-3">Controle Prático de Estoque</h3>
+                        <p className="text-slate-600">Receba avisos antes que a ração ou os medicamentos acabem, sem precisar lidar com planilhas complexas.</p>
                     </div>
                     <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100">
                         <FeatureIcon path="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                        <h3 className="text-xl font-bold mb-3">Sincronização Automática</h3>
-                        <p className="text-slate-600">Cadastrou no painel? O animal aparece instantaneamente no site público da sua ONG.</p>
+                        <h3 className="text-xl font-bold mb-3">Tudo Conectado</h3>
+                        <p className="text-slate-600">Cadastrou um animalzinho no painel? Ele já aparece na sua página de adoção na mesma hora, sem retrabalho.</p>
                     </div>
                     <div className="p-8 rounded-2xl bg-slate-50 border border-slate-100">
                         <FeatureIcon path="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                        <h3 className="text-xl font-bold mb-3">CMS Whitelabel</h3>
-                        <p className="text-slate-600">Site próprio, com a cara da sua ONG. Edite cores e banners sem precisar de código.</p>
+                        <h3 className="text-xl font-bold mb-3">Sua Própria Página</h3>
+                        <p className="text-slate-600">Tenha um site com o nome e as cores do seu projeto. Troque fotos e textos de um jeito visual e super fácil.</p>
                     </div>
                 </div>
             </section>
@@ -181,8 +177,8 @@ export default function Welcome({ auth }) {
             <section id="como-funciona" className="py-20 bg-slate-50">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center max-w-2xl mx-auto mb-16">
-                        <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-4">Do convite à adoção, em três passos</h2>
-                        <p className="text-lg text-slate-600">Pensado para times pequenos e voluntários — sem complicação técnica.</p>
+                        <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-4">Do acesso à adoção, em três passos</h2>
+                        <p className="text-lg text-slate-600">Pensado para equipas pequenas e voluntários — sem complicação técnica.</p>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-8 relative">
@@ -209,7 +205,7 @@ export default function Welcome({ auth }) {
             <section id="parceiros" className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-4 text-center">
                     <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-12">
-                        ONGs parceiras pelo Brasil
+                        ONGs parceiras pelo país
                     </h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 max-w-4xl mx-auto">
                         <PartnerMark path="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
@@ -242,13 +238,12 @@ export default function Welcome({ auth }) {
                 </div>
             </section>
 
-            {/* CONTATO (Seção Ajustada e Protegida) */}
+            {/* CONTATO */}
             <section id="contato" className="py-20 bg-slate-900 text-white">
                 <div className="max-w-2xl mx-auto px-4">
-                    <h2 className="text-3xl font-bold mb-4 text-center">Solicite um convite</h2>
-                    <p className="text-slate-400 text-sm text-center mb-8">Deixe seus dados e nossa equipe analisará o seu projeto.</p>
+                    <h2 className="text-3xl font-bold mb-4 text-center">Vamos organizar tudo juntos?</h2>
+                    <p className="text-slate-400 text-sm text-center mb-8">Deixe os seus contactos abaixo para conhecermos o seu trabalho e liberarmos o seu acesso.</p>
 
-                    {/* Alerta de Sucesso Dinâmico */}
                     {flash?.success && (
                         <div className="mb-6 p-4 bg-emerald-500/10 text-emerald-400 rounded-xl font-semibold border border-emerald-500/20 text-sm animate-fade-in">
                             🎉 {flash.success}
@@ -316,7 +311,7 @@ export default function Welcome({ auth }) {
                                 />
                             </div>
                             <label htmlFor="terms" className="ml-2 text-xs text-slate-400 leading-tight select-none">
-                                Aceito os <a href="#" className="text-indigo-400 hover:underline">Termos de Uso</a> e autorizo a PlataformaX a armazenar meus dados para contato e análise de perfil. <span className="text-red-400">*</span>
+                                Aceito os <a href="#" className="text-indigo-400 hover:underline">Termos de Uso</a> e autorizo a Fourster a armazenar os meus dados para contacto e análise de perfil. <span className="text-red-400">*</span>
                             </label>
                         </div>
                         {errors.terms_accepted && <p className="text-red-400 text-xs mt-1">⚠️ {errors.terms_accepted}</p>}
@@ -326,7 +321,7 @@ export default function Welcome({ auth }) {
                             disabled={processing}
                             className="w-full py-4 bg-indigo-600 font-bold rounded-lg hover:bg-indigo-500 text-white transition-colors disabled:opacity-50 text-sm flex items-center justify-center"
                         >
-                            {processing ? 'Enviando Solicitação...' : 'Enviar Solicitação'}
+                            {processing ? 'A enviar solicitação...' : 'Enviar solicitação'}
                         </button>
                     </form>
                 </div>
