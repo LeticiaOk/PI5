@@ -46,6 +46,14 @@ const FAQItem = ({ question, answer, isOpen, onToggle }) => (
     </div>
 );
 
+const formatPhone = (value) => {
+    return value
+        .replace(/\D/g, '')
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+        .slice(0, 15);
+};
+
 export default function Welcome({ auth }) {
     const [openFaq, setOpenFaq] = useState(0);
     const { flash } = usePage().props;
@@ -288,10 +296,13 @@ export default function Welcome({ auth }) {
                             <div>
                                 <input 
                                     className="w-full p-3 bg-slate-800 rounded-lg border border-slate-700 text-sm text-white focus:outline-none focus:border-indigo-500" 
-                                    type="tel" 
-                                    placeholder="WhatsApp (com DDD)" 
+                                    type="tel"
+                                    inputMode="numeric"
+                                    placeholder="Número de celular com DDD"
                                     value={data.phone}
-                                    onChange={e => setData('phone', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('phone', formatPhone(e.target.value))
+                                    }
                                     required
                                 />
                                 {errors.phone && <p className="text-red-400 text-xs mt-1">⚠️ {errors.phone}</p>}

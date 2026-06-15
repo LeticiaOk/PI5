@@ -8,7 +8,7 @@ export default function Dashboard({ ongs, adoptionLeads, totalMarketingOptIn, la
             <div className="max-w-7xl mx-auto space-y-8">
               <header className="flex justify-between items-end border-b border-slate-800 pb-6">
                     <div>
-                        <h1 className="text-3xl font-black text-white tracking-tight">Olimpo SaaS</h1>
+                        <h1 className="text-3xl font-black text-white tracking-tight">Foursters</h1>
                         <p className="text-slate-400 mt-1">Visão global de todas as ONGs e Leads da plataforma.</p>
                     </div>
                     
