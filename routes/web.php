@@ -121,7 +121,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // 🏠 Lares Temporários & Voluntários (Agora protegidos pelo Tenant)
     Route::resource('temporary-homes', TemporaryHomeController::class)->except(['create', 'show', 'edit']);
     Route::resource('volunteers', VolunteerController::class)->except(['create', 'show', 'edit']);
-
+    
+    Route::delete('volunteers/requests/{id}', [VolunteerController::class, 'destroyRequest'])->name('volunteers.requests.destroy');
 }); // Fim do Grupo Auth+Tenant
 
 
@@ -156,6 +157,20 @@ Route::prefix('{slug}')->middleware(['web', 'resolve.tenant'])->group(function (
     Route::post('/adote/{animal_uuid}/solicitar', [VitrineAdoptionController::class, 'store'])
         ->middleware('throttle:5,1') 
         ->name('vitrine.adote.store');
+
+
+
+    // 📩 Rota de Escrita (Adotar)
+    Route::post('/adote/{animal_uuid}/solicitar', [VitrineAdoptionController::class, 'store'])
+        ->middleware('throttle:5,1') 
+        ->name('vitrine.adote.store');
+
+    // 👇 NOVA ROTA: Escrita (Ser Voluntário)
+    // Limite: 5 requisições por minuto por IP para proteção
+    Route::post('/voluntariado/solicitar', [App\Http\Controllers\Vitrine\VitrineVolunteerController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('vitrine.volunteers.store');
+
 
 });
 

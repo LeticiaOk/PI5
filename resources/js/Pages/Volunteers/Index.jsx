@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import DataBrowser from '@/Components/DataBrowser';
 import BaseModal from '@/Components/Modals/BaseModal';
 import { ESTADOS_BR } from '@/lib/constants/address';
@@ -10,6 +10,8 @@ const EditIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" 
 const TrashIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>;
 const AlertIcon = () => <svg className="w-4 h-4 text-red-500 inline ml-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
 const UserIcon = () => <svg className="w-6 h-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>;
+const CheckIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>;
+const WhatsappIcon = () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.405-.883-.733-1.48-1.638-1.653-1.935-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>;
 
 const SKILLS_OPTIONS = [
     { id: 'veterinario', label: 'Veterinário(a)' },
@@ -31,26 +33,29 @@ const formatPhoneView = (phone) => {
     return phone.replace(/\D/g, '').replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
 };
 
-export default function VolunteersIndex({ auth, volunteers }) {
+export default function VolunteersIndex({ auth, volunteers, pendingRequests = [] }) {
+    const [activeTab, setActiveTab] = useState('active'); 
     const [modalConfig, setModalConfig] = useState({ isOpen: false, isEditing: false, id: null });
     const [loadingCep, setLoadingCep] = useState(false);
 
-    // 🛡️ CHAVES RESTAURADAS PARA EVITAR ERRO 500 NO LARAVEL
     const { data, setData, post, put, delete: destroy, reset, errors, processing } = useForm({
         name: '', phone: '', email: '', emergency_available: false,
         skills: [], availability: [], notes: '', status: 'active',
-        zip_code: '', street: '', number: '', complement: '', neighborhood: '', city: '', state: ''
+        zip_code: '', street: '', number: '', complement: '', neighborhood: '', city: '', state: '',
+        volunteer_request_id: '' 
     });
 
-    const openModal = (v = null) => {
+    const openModal = (v = null, isFromRequest = false) => {
         if (v) {
             setData({
-                ...v,
+                name: v.name,
+                phone: v.phone,
                 email: v.email || '',
-                notes: v.notes || '',
-                status: v.status || 'active',
+                notes: isFromRequest ? `Lead: ${v.notes}` : (v.notes || ''),
+                status: 'active',
                 skills: v.skills || [],
                 availability: v.availability || [],
+                emergency_available: v.emergency_available || false,
                 zip_code: v.address?.zip_code || '',
                 street: v.address?.street || '',
                 number: v.address?.number || '',
@@ -58,8 +63,9 @@ export default function VolunteersIndex({ auth, volunteers }) {
                 neighborhood: v.address?.neighborhood || '',
                 city: v.address?.city || '',
                 state: v.address?.state || '',
+                volunteer_request_id: isFromRequest ? v.id : ''
             });
-            setModalConfig({ isOpen: true, isEditing: true, id: v.id });
+            setModalConfig({ isOpen: true, isEditing: !isFromRequest, id: v.id });
         } else {
             reset();
             setModalConfig({ isOpen: true, isEditing: false, id: null });
@@ -78,10 +84,14 @@ export default function VolunteersIndex({ auth, volunteers }) {
     };
 
     const handleDelete = (id, name) => {
-        if (confirm(`Tem certeza absoluta que deseja excluir o voluntário "${name}"? Esta ação não pode ser desfeita.`)) {
-            destroy(route('volunteers.destroy', id), { preserveScroll: true });
-        }
+        if (confirm(`Excluir voluntário "${name}"?`)) destroy(route('volunteers.destroy', id), { preserveScroll: true });
     };
+
+    const handleRejectRequest = (id) => {
+        if (confirm(`Descartar esta solicitação? Esta ação não pode ser desfeita.`)) {
+            router.delete(route('volunteers.requests.destroy', id), { preserveScroll: true });
+        }
+    }
 
     const handlePhoneChange = (e) => {
         let v = e.target.value.replace(/\D/g, '');
@@ -95,11 +105,8 @@ export default function VolunteersIndex({ auth, volunteers }) {
 
     const handleCheckboxArray = (e, field) => {
         const { value, checked } = e.target;
-        if (checked) {
-            setData(field, [...data[field], value]);
-        } else {
-            setData(field, data[field].filter((item) => item !== value));
-        }
+        if (checked) setData(field, [...data[field], value]);
+        else setData(field, data[field].filter((item) => item !== value));
     };
 
     const fetchCep = async (cepValue) => {
@@ -108,9 +115,7 @@ export default function VolunteersIndex({ auth, volunteers }) {
         setLoadingCep(true);
         try {
             const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`).then(r => r.json());
-            if (!res.erro) {
-                setData(d => ({ ...d, street: res.logradouro, neighborhood: res.bairro, city: res.localidade, state: res.uf, zip_code: cep }));
-            }
+            if (!res.erro) setData(d => ({ ...d, street: res.logradouro, neighborhood: res.bairro, city: res.localidade, state: res.uf, zip_code: cep }));
         } catch (e) { alert('Erro ao buscar CEP'); } finally { setLoadingCep(false); }
     };
 
@@ -118,70 +123,193 @@ export default function VolunteersIndex({ auth, volunteers }) {
         <AuthenticatedLayout user={auth.user} header={<h2 className="text-sm font-medium text-gray-500">Rede de Apoio / <span className="text-gray-900 font-semibold">Voluntários</span></h2>}>
             <Head title="Voluntários" />
 
-            <DataBrowser 
-                title="Voluntários"
-                subtitle="Catálogo de talentos e rede de apoio."
-                data={volunteers.data || volunteers}
-                onAddClick={() => openModal()}
-                addLabel="Novo Voluntário"
-                searchPlaceholder="Buscar por nome ou contato..."
-                searchFn={(v, q) => (v.name||'').toLowerCase().includes(q) || (v.phone||'').includes(q)}
-                columns={[
-                    { label: 'NOME', key: 'name', render: (_, v) => (
-                        <span className="font-bold text-gray-900 flex items-center">
-                            {v.name} {v.emergency_available && <AlertIcon />}
-                        </span>
-                    )},
-                    { label: 'CONTATO', key: 'phone', render: (val) => formatPhoneView(val) },
-                    { label: 'HABILIDADES', key: 'skills', render: (val) => (
-                        <div className="flex flex-wrap gap-1">
-                            {val?.map(s => <span key={s} className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-[10px] font-bold uppercase tracking-wider">{SKILLS_OPTIONS.find(o => o.id === s)?.label || s}</span>)}
-                        </div>
-                    )},
-                    { label: 'AÇÕES', key: 'actions', render: (_, v) => (
-                        <div className="flex justify-center gap-2">
-                            <button onClick={() => openModal(v)} className="p-2 bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors"><EditIcon /></button>
-                            <button onClick={() => handleDelete(v.id, v.name)} className="p-2 bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors"><TrashIcon /></button>
-                        </div>
-                    )}
-                ]}
-                renderMobileCard={(v) => (
-                    <div key={v.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col gap-3">
-                        <div className="flex justify-between items-start gap-2">
-                            <div className="flex gap-3 items-center">
-                                <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
-                                    <UserIcon />
+            {/* 🔥 ALINHAMENTO CORRIGIDO: Removido max-w e mx-auto que estavam espremendo as abas no meio da tela */}
+            <div className="px-4 sm:px-6 lg:px-8 mt-6">
+                <div className="border-b border-gray-200">
+                    <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                        <button
+                            onClick={() => setActiveTab('active')}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                activeTab === 'active' 
+                                ? 'border-indigo-600 text-indigo-600' 
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                        >
+                            Voluntários Ativos
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('pending')}
+                            className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
+                                activeTab === 'pending' 
+                                ? 'border-indigo-600 text-indigo-600' 
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }`}
+                        >
+                            Solicitações da Vitrine
+                            {pendingRequests.length > 0 && (
+                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-black ${
+                                    activeTab === 'pending' ? 'bg-indigo-100 text-indigo-700' : 'bg-red-100 text-red-600'
+                                }`}>
+                                    {pendingRequests.length}
+                                </span>
+                            )}
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <div className="mt-4">
+                {/* 🛡️ ABA 1: Voluntários Ativos */}
+                {activeTab === 'active' && (
+                    <DataBrowser 
+                        title="Equipe de Voluntários"
+                        subtitle="Organize sua equipe de voluntários e colaboradores."                        data={volunteers.data || volunteers}
+                        onAddClick={() => openModal()}
+                        addLabel="Novo Voluntário"
+                        searchPlaceholder="Buscar por nome ou contato..."
+                        searchFn={(v, q) => (v.name||'').toLowerCase().includes(q) || (v.phone||'').includes(q)}
+                        columns={[
+                            { label: 'NOME', key: 'name', render: (_, v) => (
+                                <span className="font-bold text-gray-900 flex items-center">
+                                    {v.name} {v.emergency_available && <AlertIcon />}
+                                </span>
+                            )},
+                            { label: 'CONTATO', key: 'phone', render: (val) => formatPhoneView(val) },
+                            { label: 'HABILIDADES', key: 'skills', render: (val) => (
+                                <div className="flex flex-wrap gap-1">
+                                    {val?.map(s => <span key={s} className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded text-[10px] font-bold uppercase tracking-wider">{SKILLS_OPTIONS.find(o => o.id === s)?.label || s}</span>)}
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-gray-900 flex items-center gap-1.5">
-                                        {v.name} {v.emergency_available && <AlertIcon />}
-                                    </h3>
-                                    <p className="text-sm text-gray-500">{formatPhoneView(v.phone)}</p>
-                                </div>
-                            </div>
-                            <div className="flex flex-col gap-1.5 items-end">
-                                <div className="flex gap-1.5">
+                            )},
+                            { label: 'AÇÕES', key: 'actions', render: (_, v) => (
+                                <div className="flex justify-center gap-2">
                                     <button onClick={() => openModal(v)} className="p-2 bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors"><EditIcon /></button>
                                     <button onClick={() => handleDelete(v.id, v.name)} className="p-2 bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors"><TrashIcon /></button>
                                 </div>
+                            )}
+                        ]}
+                        renderMobileCard={(v) => (
+                            <div key={v.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col gap-3">
+                                <div className="flex justify-between items-start gap-2">
+                                    <div className="flex gap-3 items-center">
+                                        <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
+                                            <UserIcon />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 flex items-center gap-1.5">
+                                                {v.name} {v.emergency_available && <AlertIcon />}
+                                            </h3>
+                                            <p className="text-sm text-gray-500">{formatPhoneView(v.phone)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5 items-end">
+                                        <div className="flex gap-1.5">
+                                            <button onClick={() => openModal(v)} className="p-2 bg-gray-100 text-gray-600 hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors"><EditIcon /></button>
+                                            <button onClick={() => handleDelete(v.id, v.name)} className="p-2 bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors"><TrashIcon /></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100 mt-2">
+                                    <span className="text-sm text-gray-600">📍 {v.address?.city && v.address?.state ? `${v.address.city} - ${v.address.state}` : 'Local não informado'}</span>
+                                    {v.skills && v.skills.length > 0 && (
+                                        <div className="flex flex-wrap gap-1">
+                                            {v.skills.map(s => <span key={s} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px] font-bold uppercase">{SKILLS_OPTIONS.find(o => o.id === s)?.label || s}</span>)}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div className="flex flex-col gap-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100 mt-2">
-                            <span className="text-sm text-gray-600">📍 {v.address?.city && v.address?.state ? `${v.address.city} - ${v.address.state}` : 'Local não informado'}</span>
-                            {v.skills && v.skills.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                    {v.skills.map(s => <span key={s} className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[10px] font-bold uppercase">{SKILLS_OPTIONS.find(o => o.id === s)?.label || s}</span>)}
+                        )}
+                    />
+                )}
+
+                {/* 🛡️ ABA 2: Solicitações (Leads) */}
+                {activeTab === 'pending' && (
+                    <DataBrowser 
+                        title="Novas Solicitações"
+                        subtitle="Contate as pessoas interessadas antes de efetivá-las como voluntárias."
+                        data={pendingRequests}
+                        onAddClick={null} 
+                        searchPlaceholder="Procurar interessados..."
+                        searchFn={(v, q) => (v.name||'').toLowerCase().includes(q)}
+                        columns={[
+                            { label: 'NOME', key: 'name', render: (_, v) => <span className="font-bold text-gray-900">{v.name}</span> },
+                            { label: 'WHATSAPP', key: 'phone', render: (val) => <span className="text-gray-600 font-medium">{formatPhoneView(val)}</span> },
+                            { label: 'MENSAGEM/INTENÇÃO', key: 'notes', render: (val) => <span className="text-xs text-gray-500 line-clamp-2" title={val}>{val}</span> },
+                            { label: 'AÇÕES', key: 'actions', render: (_, v) => (
+                                <div className="flex items-center gap-2">
+                                    <a 
+                                        href={`https://wa.me/55${v.phone.replace(/\D/g, '')}`} 
+                                        target="_blank" 
+                                        rel="noreferrer"
+                                        title="Chamar no WhatsApp"
+                                        className="p-1.5 px-3 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-md transition-colors font-bold flex gap-1 items-center text-[11px] uppercase tracking-wide"
+                                    >
+                                        <WhatsappIcon /> Chamar
+                                    </a>
+                                    <button 
+                                        onClick={() => openModal(v, true)} 
+                                        title="Cadastrar pessoa no sistema"
+                                        className="p-1.5 px-3 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-md transition-colors font-bold flex gap-1 items-center text-[11px] uppercase tracking-wide"
+                                    >
+                                        <CheckIcon /> Efetivar
+                                    </button>
+                                    <button 
+                                        onClick={() => handleRejectRequest(v.id)} 
+                                        title="Descartar"
+                                        className="p-1.5 px-2 bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700 rounded-md transition-colors"
+                                    >
+                                        <TrashIcon />
+                                    </button>
                                 </div>
                             )}
-                        </div>
-                    </div>
-                )}
-            />
+                        ]}
+                        renderMobileCard={(v) => (
+                            <div key={v.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex flex-col gap-3">
+                                <div className="flex justify-between items-start gap-2">
+                                    <div>
+                                        <h3 className="font-bold text-gray-900">{v.name}</h3>
+                                        <p className="text-sm text-gray-500">{formatPhoneView(v.phone)}</p>
+                                    </div>
+                                    <span className="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                                        Nova solicitação
+                                    </span>
+                                </div>
+                                
+                                <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100 text-sm text-gray-600">
+                                    <span className="font-semibold block mb-1">Mensagem:</span>
+                                    <p className="line-clamp-3">{v.notes}</p>
+                                </div>
 
-            <BaseModal isOpen={modalConfig.isOpen} onClose={closeModal} title={modalConfig.isEditing ? 'Editar Voluntário' : 'Novo Voluntário'}>
+                                <div className="flex items-center gap-2 mt-2 pt-3 border-t border-gray-100">
+                                    <a 
+                                        href={`https://wa.me/55${v.phone.replace(/\D/g, '')}`} 
+                                        target="_blank" 
+                                        rel="noreferrer"
+                                        className="flex-1 py-2 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg transition-colors font-bold text-xs flex items-center justify-center gap-1"
+                                    >
+                                        <WhatsappIcon /> Chamar
+                                    </a>
+                                    <button 
+                                        onClick={() => openModal(v, true)} 
+                                        className="flex-1 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-lg transition-colors font-bold text-xs flex items-center justify-center gap-1"
+                                    >
+                                        <CheckIcon /> Efetivar
+                                    </button>
+                                    <button 
+                                        onClick={() => handleRejectRequest(v.id)} 
+                                        className="p-2 bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors"
+                                    >
+                                        <TrashIcon />
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    />
+                )}
+            </div>
+
+            {/* MODAL PADRÃO */}
+            <BaseModal isOpen={modalConfig.isOpen} onClose={closeModal} title={modalConfig.isEditing ? 'Editar Voluntário' : 'Efetivar Voluntário'}>
                 <form onSubmit={submit} className="p-2 space-y-8">
-                    
                     {/* Bloco 1: Dados Pessoais */}
                     <div>
                         <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-4">Informações Básicas</h4>

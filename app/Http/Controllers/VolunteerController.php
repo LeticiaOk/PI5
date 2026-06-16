@@ -18,8 +18,15 @@ class VolunteerController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        // Busca as solicitações pendentes isoladas no tenant
+        $pendingRequests = \App\Models\VolunteerRequest::where('status', 'pending')
+        ->latest()
+        ->get();
+
+
         return Inertia::render('Volunteers/Index', [
-            'volunteers' => $volunteers
+            'volunteers' => $volunteers,
+            'pendingRequests' => $pendingRequests
         ]);
     }
 
@@ -50,6 +57,12 @@ public function store(Request $request)
             'city' => $validated['city'],
             'state' => $validated['state'],
         ]);
+
+        if ($request->filled('volunteer_request_id')) {
+            \App\Models\VolunteerRequest::where('id', $request->volunteer_request_id)
+                ->where('ong_id', auth()->user()->ong_id) // Proteção Multi-tenant
+                ->update(['status' => 'approved']);
+        }
 
         return redirect()->back()->with('success', 'Voluntário cadastrado com sucesso!');
     }
@@ -129,5 +142,16 @@ public function store(Request $request)
             'city' => 'required|string|max:255',
             'state' => 'required|string|max:2',
         ]);
+    }
+
+    public function destroyRequest($id)
+    {
+        $request = \App\Models\VolunteerRequest::where('id', $id)
+            ->where('ong_id', auth()->user()->ong_id)
+            ->firstOrFail();
+
+        $request->delete(); // Apaga o lead do banco
+
+        return redirect()->back()->with('success', 'Solicitação descartada.');
     }
 }

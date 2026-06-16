@@ -125,7 +125,10 @@ export default function Home({ slug, ong, settings, availableCount }) {
 
             {/* CTA DOAÇÃO */}
             <section className="py-24 px-4">
-                <div className="max-w-4xl mx-auto bg-slate-900 rounded-[3rem] p-10 sm:p-20 text-center shadow-2xl">
+                <div
+    className="max-w-4xl mx-auto rounded-[3rem] p-10 sm:p-20 text-center shadow-2xl"
+    style={{ backgroundColor: heroBgColor }}
+>
                     <h2 className="text-3xl sm:text-5xl font-black text-white mb-8 leading-tight">
                         Não pode adotar agora? <br/> 
                         <span style={{ color: primaryColor }}>Você ainda pode salvar vidas.</span>

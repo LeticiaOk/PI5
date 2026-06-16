@@ -1,11 +1,12 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import VolunteerModal from '@/Components/Vitrine/VolunteerModal';
 
 export default function Header({ slug }) {
     const [isOpen, setIsOpen] = useState(false);
+    const [isVolunteerModalOpen, setIsVolunteerModalOpen] = useState(false); 
 
     const { url, props } = usePage();
-
     const ong = props.ong || {};
     const settings = props.settings || {};
 
@@ -13,20 +14,11 @@ export default function Header({ slug }) {
     const primaryColor = settings.primary_color || '#ff5733';
     const logoUrl = ong.logo_path;
 
-    // 🔥 WhatsApp formatado (mesma lógica do footer)
-    const whatsappNumber = settings.public_whatsapp
-        ? `55${settings.public_whatsapp.replace(/\D/g, '')}`
-        : null;
-
-    const whatsappLink = whatsappNumber
-        ? `https://wa.me/${whatsappNumber}`
-        : '#';
-
     const navLinks = [
         { name: 'Home', href: route('vitrine.home', { slug }), type: 'internal' },
         { name: 'Adote', href: route('vitrine.adote', { slug }), type: 'internal' },
         { name: 'Sobre nós', href: route('vitrine.quem-somos', { slug }), type: 'internal' },
-        { name: 'Seja um voluntário', href: whatsappLink, type: 'external' },
+        { name: 'Seja um voluntário', type: 'modal' }, 
     ];
 
     const isActive = (href) => {
@@ -52,45 +44,47 @@ export default function Header({ slug }) {
                         ) : (
                             <span className="text-3xl">🐾</span>
                         )}
-
                         <span className="text-lg font-black text-gray-900">
                             {ongName}
                         </span>
                     </Link>
 
-                    {/* NAV DESKTOP */}
+                    {/* MENU DESKTOP COM O EFEITO VISUAL DE VOLTA */}
                     <nav className="hidden md:flex items-center gap-8">
                         {navLinks.map((link) => {
-                            // 🔥 se for externo (WhatsApp), usa <a>
-                            if (link.type === 'external') {
+                            if (link.type === 'modal') {
                                 return (
-                                    <a
+                                    <button
                                         key={link.name}
-                                        href={link.href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-sm font-bold tracking-wide text-gray-600 hover:opacity-70 transition-all relative py-2"
+                                        onClick={() => setIsVolunteerModalOpen(true)}
+                                        className="relative py-2 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors group"
                                     >
                                         {link.name}
-                                    </a>
+                                        {/* Efeito de hover no modal */}
+                                        <span 
+                                            className="absolute bottom-0 left-0 h-[2px] w-0 bg-gray-900 transition-all duration-300 rounded-full group-hover:w-full"
+                                        />
+                                    </button>
                                 );
                             }
+                            
+                            const active = isActive(link.href);
 
                             return (
                                 <Link
                                     key={link.name}
                                     href={link.href}
-                                    className="text-sm font-bold tracking-wide transition-all relative py-2 text-gray-600 hover:opacity-70"
-                                    style={{ color: isActive(link.href) ? primaryColor : undefined }}
+                                    className="relative py-2 text-sm font-bold transition-colors group"
+                                    style={{ color: active ? primaryColor : '#4B5563' }}
                                 >
                                     {link.name}
-
-                                    {isActive(link.href) && (
-                                        <span
-                                            className="absolute bottom-0 left-0 w-full h-0.5 rounded-full"
-                                            style={{ backgroundColor: primaryColor }}
-                                        />
-                                    )}
+                                    {/* 🔴 A BARRINHA ATIVA QUE VOCÊ GOSTAVA (Agora com animação!) */}
+                                    <span 
+                                        className={`absolute bottom-0 left-0 h-[2.5px] transition-all duration-300 rounded-full ${
+                                            active ? 'w-full' : 'w-0 group-hover:w-full'
+                                        }`}
+                                        style={{ backgroundColor: primaryColor }}
+                                    />
                                 </Link>
                             );
                         })}
@@ -100,16 +94,16 @@ export default function Header({ slug }) {
                     <div className="hidden md:block">
                         <Link
                             href={route('vitrine.doar', { slug })}
-                            className="px-5 py-2.5 text-white text-sm font-black rounded-xl shadow-md"
+                            className="px-5 py-2.5 text-white text-sm font-black rounded-xl shadow-md hover:scale-105 transition-transform"
                             style={{ backgroundColor: primaryColor }}
                         >
                             Faça uma doação
                         </Link>
                     </div>
 
-                    {/* MOBILE */}
+                    {/* MOBILE TOGGLE */}
                     <div className="flex md:hidden">
-                        <button onClick={() => setIsOpen(!isOpen)}>
+                        <button onClick={() => setIsOpen(!isOpen)} className="text-2xl focus:outline-none text-gray-600">
                             ☰
                         </button>
                     </div>
@@ -118,41 +112,65 @@ export default function Header({ slug }) {
 
             {/* MOBILE MENU */}
             {isOpen && (
-                <div className="md:hidden bg-white border-b border-gray-100">
+                <div className="md:hidden bg-white border-b border-gray-100 animate-fade-in">
                     <div className="px-4 py-4 space-y-2">
 
                         {navLinks.map((link) => {
-                            if (link.type === 'external') {
+                            if (link.type === 'modal') {
                                 return (
-                                    <a
+                                    <button
                                         key={link.name}
-                                        href={link.href}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="block px-4 py-3 rounded-xl text-base font-bold text-gray-600 hover:bg-gray-50"
-                                        onClick={() => setIsOpen(false)}
+                                        onClick={() => {
+                                            setIsOpen(false);
+                                            setIsVolunteerModalOpen(true);
+                                        }}
+                                        className="block w-full text-left px-4 py-3 rounded-xl text-base font-bold text-gray-600 hover:bg-gray-50"
                                     >
                                         {link.name}
-                                    </a>
+                                    </button>
                                 );
                             }
+
+                            const active = isActive(link.href);
 
                             return (
                                 <Link
                                     key={link.name}
                                     href={link.href}
                                     onClick={() => setIsOpen(false)}
-                                    className="block px-4 py-3 rounded-xl text-base font-bold text-gray-600 hover:bg-gray-50"
-                                    style={{ color: isActive(link.href) ? primaryColor : undefined }}
+                                    className="block px-4 py-3 rounded-xl text-base font-bold hover:bg-gray-50 border-l-4 transition-all"
+                                    style={{ 
+                                        color: active ? primaryColor : '#4B5563',
+                                        borderColor: active ? primaryColor : 'transparent',
+                                        backgroundColor: active ? `${primaryColor}10` : 'transparent' // Fundo levemente colorido no mobile
+                                    }}
                                 >
                                     {link.name}
                                 </Link>
                             );
                         })}
+                        
+                        <Link
+                            href={route('vitrine.doar', { slug })}
+                            onClick={() => setIsOpen(false)}
+                            className="block text-center mt-4 px-4 py-3 rounded-xl text-base font-bold text-white shadow-md active:scale-95 transition-transform"
+                            style={{ backgroundColor: primaryColor }}
+                        >
+                            Faça uma doação
+                        </Link>
 
                     </div>
                 </div>
             )}
+
+            {isVolunteerModalOpen && (
+                <VolunteerModal 
+                    slug={slug} 
+                    ongName={ongName} 
+                    onClose={() => setIsVolunteerModalOpen(false)} 
+                />
+            )}
+
         </header>
     );
 }
