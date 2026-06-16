@@ -16,6 +16,7 @@ use App\Http\Controllers\Vitrine\VitrineController;
 use App\Http\Controllers\Vitrine\VitrineAdoptionController;
 use App\Http\Controllers\Web\LandingLeadController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
+use App\Http\Controllers\SuperAdmin\SuperAdminOngController;
 
 // ── ROTA DA LANDING PAGE ──────────────────────────────
 Route::get('/', function () {
@@ -180,5 +181,8 @@ Route::prefix('{slug}')->middleware(['web', 'resolve.tenant'])->group(function (
 Route::middleware(['auth', 'superadmin'])->prefix('admin')->name('superadmin.')->group(function () {
     
     Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])->name('dashboard');
+    Route::post('/ongs', [SuperAdminOngController::class, 'store'])->name('ongs.store');
+    Route::put('/ongs/{id}', [SuperAdminOngController::class, 'update'])->name('ongs.update');
+    Route::delete('/ongs/{id}', [SuperAdminOngController::class, 'destroy'])->name('ongs.destroy');
 
 });

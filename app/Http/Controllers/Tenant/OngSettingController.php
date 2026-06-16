@@ -42,6 +42,7 @@ class OngSettingController extends Controller
         $settings = OngSetting::where('ong_id', $tenantId)->firstOrFail();
         $ong = Ong::findOrFail($tenantId); 
 
+        // 1. Chave PIX adicionada na validação
         $validated = $request->validate([
             'primary_color' => 'required|string|max:7',
             'hero_subtitle' => 'required|string|max:255',
@@ -51,6 +52,7 @@ class OngSettingController extends Controller
             'display_whatsapp' => 'required|boolean',
             'facebook_url' => 'nullable|url|max:255',
             'instagram_url' => 'nullable|url|max:255',
+            'pix_key' => 'nullable|string|max:255', // <-- AQUI
             'manual_saved_count' => 'required|integer|min:0',
             'manual_volunteers_count' => 'required|integer|min:0',
             'hero_background_color' => 'required|string|max:7',
@@ -139,6 +141,7 @@ class OngSettingController extends Controller
             $validated['public_whatsapp'] = preg_replace('/\D/', '', $validated['public_whatsapp']);
         }
 
+        // A $validated agora possui 'pix_key', que será salvo automaticamente aqui.
         $settings->update($validated);
 
         return back()->with('success', 'Configurações atualizadas com sucesso!');

@@ -29,6 +29,7 @@ export default function Settings({ auth, settings, ongLogo }) {
         hero_background_color: settings.hero_background_color || '#0f172a',
         facebook_url: settings.facebook_url || '',
         instagram_url: settings.instagram_url || '',
+        pix_key: settings.pix_key || '',
         
         logo_path: null,
         hero_image_url: null, 
@@ -342,6 +343,24 @@ export default function Settings({ auth, settings, ongLogo }) {
                             </div>
                         </div>
 
+                        {/* SEÇÃO 7: DOAÇÕES (PIX) */}
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-900 border-b pb-2 mb-4">7. Doações</h3>
+                            <div className="md:w-1/2">
+                                <label htmlFor="pix_key" className="block text-sm font-semibold text-gray-700 mb-1">Chave PIX para Doações</label>
+                                <input
+                                    id="pix_key"
+                                    type="text"
+                                    value={data.pix_key}
+                                    onChange={(e) => setData('pix_key', e.target.value)}
+                                    placeholder="E-mail, CPF, CNPJ ou Celular"
+                                    className="w-full border-gray-300 rounded-xl text-sm font-mono"
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Visitantes poderão copiar essa chave para enviar doações diretamente pelo site.</p>
+                                {errors.pix_key && <p className="text-red-500 text-xs mt-1">{errors.pix_key}</p>}
+                            </div>
+                        </div>
+
                         {/* ── FEEDBACK E BOTÃO DE SALVAR NO RODAPÉ ── */}
                         <div className="pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="flex-1 min-h-[40px] flex items-center">
@@ -366,6 +385,7 @@ export default function Settings({ auth, settings, ongLogo }) {
                                 {processing ? 'Salvando...' : 'Salvar Alterações'}
                             </button>
                         </div>
+
                     </form>
 
                 </div>
